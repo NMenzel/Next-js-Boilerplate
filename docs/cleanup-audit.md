@@ -132,3 +132,25 @@ Findings while implementing:
 - The Supabase CLI's generated `config.toml` contains a disabled `[auth.third_party.clerk]` section. It is stock CLI configuration, not a Clerk dependency.
 
 Registration policy: public sign-up is **enabled** in the local `supabase/config.toml` with email confirmations off, so local and CI tests need no mail delivery. Hosted projects must set their own policy in the Supabase dashboard (see README). The sign-up action maps `signup_disabled`/`email_provider_disabled` to a "Sign-up is not available" message so a provider-level disable is handled, but the starter does not claim that hiding the link protects anything.
+
+### Phase 3 — i18n, accessibility, UI
+
+Commit `c0442de`. The `<select>` language switcher navigated on change (WCAG 3.2.2 failure for keyboard users) and was replaced by links with `lang`/`hrefLang`/`aria-current`. Added a localized 404 and a global `:focus-visible` outline. React Compiler output confirmed in production chunks (memo cache arrays in `ActionForm` and `LocaleSwitcher`); disabled in `next dev` by configuration. E2E 23/23; 320 px layout checked by screenshot.
+
+### Phase 4 — observability and security
+
+Commit `82a655b`. Sentry is opt-in by DSN with no replay, tunnel or PII collection; source maps only with an auth token. Logs pass through `@logtape/redaction` (mutation-tested). Baseline security headers are asserted in E2E. Builds pass with and without a DSN.
+
+### Phase 5 — decisions
+
+Commit `3ce6aba`: `docs/architecture.md`, ADR-001 to ADR-005. Upload, job and privacy ADRs are marked not implemented.
+
+### Phase 6 — tooling, CI, docs
+
+Commits `c9d1288` (CI, hooks), `ae4f7cf` (README, AGENTS.md, CLAUDE.md) and the handoff commit. Lefthook pre-commit is now check-only on staged files (verified to reject a badly formatted, lint-failing file without modifying it); whole-repo checks moved to pre-push. CI workflow validated with `actionlint`; not yet run on GitHub. Fresh-clone verification and the full command list are in [starter-handoff.md](starter-handoff.md).
+
+Additional finding: `next dev` corrupts `.next/dev/prerender-manifest.json` under concurrent first requests ([vercel/next.js#96664](https://github.com/vercel/next.js/issues/96664)); reproduced locally, documented in the README, avoided in tests by running E2E against `next start`.
+
+### Remaining appearances of removed vendor names
+
+A repository-wide search finds removed vendor names only in this audit (history), in ADR-005 (PostHog as a deferred option), in README/ADR-001 (MIT attribution to `ixartz/Next-js-Boilerplate`) and in `supabase/config.toml` (the Supabase CLI's stock, disabled `[auth.third_party.clerk]` section).

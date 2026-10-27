@@ -137,6 +137,7 @@ The app is a standard Next.js Node.js server (`npm run build && npm start`) and 
 - Application mutations are not rate limited; Supabase Auth has its own limits.
 - Translations are maintained by hand; the Spanish copy has not been reviewed by a native speaker.
 - Accessibility is covered by automated axe checks and keyboard tests, not by manual screen reader audits.
+- Next.js 16.4 dev server bug: several simultaneous first requests to localized pages can corrupt `.next/dev/prerender-manifest.json`, after which `next dev` answers 500 (`Unexpected non-whitespace character after JSON`) until restarted ([vercel/next.js#96664](https://github.com/vercel/next.js/issues/96664), fix in [#100521](https://github.com/vercel/next.js/pull/100521)). Restart `npm run dev` if it happens. Production servers and the E2E suite (which uses `next start`) are not affected.
 
 ## Documentation
 
