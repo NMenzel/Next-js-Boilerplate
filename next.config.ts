@@ -20,9 +20,6 @@ const baseConfig: NextConfig = {
   logging: {
     browserToTerminal: process.env.BROWSER_TO_TERMINAL_DISABLED !== 'true',
   },
-  outputFileTracingIncludes: {
-    '/': ['./migrations/**/*'],
-  },
 };
 
 // Initialize the Next-Intl plugin

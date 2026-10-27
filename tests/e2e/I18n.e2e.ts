@@ -7,19 +7,11 @@ test.describe('I18n', () => {
     }) => {
       await page.goto('/');
 
-      await expect(
-        page.getByRole('heading', {
-          name: 'Boilerplate Code for Your Next.js Project with Tailwind CSS',
-        }),
-      ).toBeVisible();
+      await expect(page.getByRole('heading', { name: 'Next.js starter' })).toBeVisible();
 
       await page.getByLabel('Change language').selectOption('fr');
 
-      await expect(
-        page.getByRole('heading', {
-          name: 'Code de démarrage pour Next.js avec Tailwind CSS',
-        }),
-      ).toBeVisible();
+      await expect(page.getByRole('heading', { name: 'Starter Next.js' })).toBeVisible();
     });
 
     test('should switch language from English to French using URL and verify text on the sign-in page', async ({
