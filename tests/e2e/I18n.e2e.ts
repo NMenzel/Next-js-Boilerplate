@@ -1,29 +1,33 @@
 import { expect, test } from '@playwright/test';
 
 test.describe('I18n', () => {
-  test.describe('Language Switching', () => {
-    test('should switch language from English to French using dropdown and verify text on the homepage', async ({
-      page,
-    }) => {
+  test.describe('Language switching', () => {
+    test('switches the homepage from English to Spanish with the dropdown', async ({ page }) => {
       await page.goto('/');
 
       await expect(page.getByRole('heading', { name: 'Next.js starter' })).toBeVisible();
 
-      await page.getByLabel('Change language').selectOption('fr');
+      await page.getByLabel('Change language').selectOption('es');
 
-      await expect(page.getByRole('heading', { name: 'Starter Next.js' })).toBeVisible();
+      await expect(page).toHaveURL(/\/es$/u);
+      await expect(page.getByRole('heading', { name: 'Starter de Next.js' })).toBeVisible();
     });
 
-    test('should switch language from English to French using URL and verify text on the sign-in page', async ({
-      page,
-    }) => {
-      await page.goto('/sign-in');
+    test('renders the Spanish sign-in form from the URL', async ({ page }) => {
+      await page.goto('/es/sign-in');
 
-      await expect(page.getByText('Email address')).toBeVisible();
+      await expect(page.getByLabel('Correo electrónico')).toBeVisible();
+      await expect(page.getByRole('button', { name: 'Iniciar sesión' })).toBeVisible();
+    });
 
-      await page.goto('/fr/sign-in');
+    test('sets the document language for each locale', async ({ page }) => {
+      await page.goto('/');
 
-      await expect(page.getByText('Adresse e-mail')).toBeVisible();
+      await expect(page.locator('html')).toHaveAttribute('lang', 'en');
+
+      await page.goto('/es');
+
+      await expect(page.locator('html')).toHaveAttribute('lang', 'es');
     });
   });
 });

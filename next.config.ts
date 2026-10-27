@@ -5,6 +5,8 @@ import createNextIntlPlugin from 'next-intl/plugin';
 
 // Define the base Next.js configuration
 const baseConfig: NextConfig = {
+  // Keep AGENTS.md hand-maintained; `next dev` would otherwise inject a managed block for AI agents.
+  agentRules: false,
   devIndicators: {
     position: 'bottom-right',
   },

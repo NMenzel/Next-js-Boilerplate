@@ -26,12 +26,13 @@ export default defineConfig({
     timeout: 15 * 1000,
   },
 
-  // Run your local dev server before starting the tests:
+  // Build and serve the production app (React Compiler on, no dev compile delays).
+  // Requires the local Supabase stack: `npm run db:start`.
   // https://playwright.dev/docs/test-advanced#launching-a-development-web-server-during-the-tests
   webServer: {
-    command: process.env.CI ? 'npm run start' : 'npm run dev',
+    command: 'npm run build && npm run start',
     url: baseURL,
-    timeout: 60 * 1000,
+    timeout: 180 * 1000,
     reuseExistingServer: !process.env.CI,
     gracefulShutdown: { signal: 'SIGTERM', timeout: 2 * 1000 },
     env: {
