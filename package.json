@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "analyze": "next experimental-analyze",
-    "clean": "rimraf .next out test-results playwright-report vitest-test-results storybook-static",
+    "clean": "rimraf .next out test-results playwright-report vitest-test-results .vitest-attachments storybook-static",
     "check": "npm run typecheck && run-p --aggregate-output --continue-on-error lint format:check check:*",
     "verify": "run-s check test test:storybook test:rls test:db test:e2e",
     "typecheck": "next typegen && tsc --noEmit --pretty",
