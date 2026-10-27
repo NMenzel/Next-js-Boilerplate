@@ -1,3 +1,4 @@
+import type { ErrorEvent } from '@sentry/nextjs';
 import { Env } from './Env';
 
 /**
@@ -17,5 +18,16 @@ export const sentryOptions = {
     urlQueryParams: false,
     databaseQueryData: false,
     stackFrameVariables: false,
+  },
+  // Drizzle error messages embed the SQL and its parameters (user input). Unhandled errors reach
+  // Sentry through `onRequestError`, so drop those details before sending.
+  beforeSend: (event: ErrorEvent) => {
+    for (const exception of event.exception?.values ?? []) {
+      if (exception.value?.startsWith('Failed query')) {
+        exception.value = 'Failed query (details removed)';
+      }
+    }
+
+    return event;
   },
 };

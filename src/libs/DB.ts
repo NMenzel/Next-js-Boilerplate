@@ -28,19 +28,23 @@ if (Env.NODE_ENV !== 'production') {
 
 type Transaction = Parameters<Parameters<typeof db.transaction>[0]>[0];
 
+const getErrorCode = (value: unknown) =>
+  value instanceof Error && 'code' in value && typeof value.code === 'string'
+    ? value.code
+    : undefined;
+
 /**
  * Extracts the Postgres error code for logging. Drizzle error messages embed query parameters,
- * so never log them.
+ * so never log them. Drizzle wraps query errors (code on `cause`); connection errors from `pg` are
+ * not wrapped.
  * @param error The error thrown by a query.
- * @returns The SQLSTATE code, e.g. `42501`, or `unknown`.
+ * @returns The SQLSTATE code, e.g. `42501`, a connection error code such as `ECONNREFUSED`, or
+ * `unknown`.
  */
-export const getDatabaseErrorCode = (error: unknown) => {
-  const cause = error instanceof Error ? error.cause : undefined;
-
-  return cause instanceof Error && 'code' in cause && typeof cause.code === 'string'
-    ? cause.code
-    : 'unknown';
-};
+export const getDatabaseErrorCode = (error: unknown) =>
+  getErrorCode(error instanceof Error ? error.cause : undefined) ??
+  getErrorCode(error) ??
+  'unknown';
 
 /**
  * Runs queries as the signed-in user so that Row Level Security applies. The connection itself is
