@@ -52,6 +52,10 @@ next-env.d.ts
 # Database
 *.db
 
+# storybook
+storybook-static
+*storybook.log
+
 # playwright
 /test-results/
 /playwright-report/
