@@ -49,8 +49,13 @@ jobs:
       - name: Translations
         run: npm run check:i18n
 
-      - name: Dependency vulnerabilities (high and critical)
-        run: npm audit --audit-level=high
+      # Production dependencies block on high and critical advisories; dev tooling blocks on critical.
+      # The full report is always printed. Accepted dev-only findings: docs/cleanup-audit.md.
+      - name: Production dependency vulnerabilities (high and critical)
+        run: npm audit --omit=dev --audit-level=high
+
+      - name: All dependency vulnerabilities (critical)
+        run: npm audit --audit-level=critical
 
       - name: Registry signatures and provenance
         run: npm audit signatures

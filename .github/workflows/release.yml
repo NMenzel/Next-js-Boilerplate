@@ -1,0 +1,38 @@
+name: Release
+
+# Creates a GitHub release and tag from Conventional Commits after CI passes on main.
+# Needs only the built-in GITHUB_TOKEN; nothing is published to npm (the package is private).
+on:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
+    branches: [main]
+
+jobs:
+  release:
+    name: Create a release
+    if: github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    permissions:
+      contents: write # create tags and releases
+      issues: write # comment on released issues
+      pull-requests: write # comment on released pull requests
+
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }} # the commit CI tested
+          fetch-depth: 0
+
+      - name: Set up project
+        uses: ./.github/actions/setup-project
+
+      - name: Verify registry signatures and provenance
+        run: npm audit signatures
+
+      - name: Release
+        run: npm run release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
