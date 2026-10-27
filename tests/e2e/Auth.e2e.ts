@@ -1,5 +1,13 @@
 import { expect, test } from '@playwright/test';
-import { createEmail, getEmailedLink, PASSWORD, signIn, signUp } from './AuthHelpers';
+import {
+  createEmail,
+  expireAccessToken,
+  getEmailedLink,
+  PASSWORD,
+  readSession,
+  signIn,
+  signUp,
+} from './AuthHelpers';
 
 // Requires the local Supabase stack: `npm run db:start`.
 test.describe('Authentication', () => {
@@ -64,6 +72,28 @@ test.describe('Authentication', () => {
       await page.reload();
 
       await expect(page.getByText(`Has iniciado sesión como ${email}`)).toBeVisible();
+    });
+  });
+
+  test.describe('Session refresh', () => {
+    test('refreshes an expired access token in the proxy without signing out', async ({
+      context,
+      page,
+    }) => {
+      const email = createEmail();
+      await signUp(page, email);
+      const before = await readSession(context);
+      await expireAccessToken(context);
+
+      await page.goto('/app');
+
+      await expect(page).toHaveURL(/\/app$/u);
+      await expect(page.getByText(`Signed in as ${email}`)).toBeVisible();
+
+      const after = await readSession(context);
+
+      expect(after.refresh_token).not.toBe(before.refresh_token);
+      expect(after.expires_at).toBeGreaterThan(Date.now() / 1000);
     });
   });
 

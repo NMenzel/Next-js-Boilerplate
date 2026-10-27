@@ -1,4 +1,4 @@
-import type { APIRequestContext, Page } from '@playwright/test';
+import type { APIRequestContext, BrowserContext, Page } from '@playwright/test';
 import { expect } from '@playwright/test';
 import * as z from 'zod';
 
@@ -49,4 +49,42 @@ export const getEmailedLink = async (request: APIRequestContext, to: string) => 
   const href = /href="([^"]+)"/u.exec(message.HTML)?.[1] ?? '';
 
   return href.replaceAll('&amp;', '&');
+};
+
+const AUTH_COOKIE = /^sb-.+-auth-token(?:\.\d+)?$/u;
+const SESSION_PREFIX = 'base64-';
+const StoredSession = z.looseObject({ expires_at: z.number(), refresh_token: z.string() });
+
+// @supabase/ssr stores the session as base64url JSON, split into `.0`, `.1`… chunks when large.
+const getAuthCookies = async (context: BrowserContext) => {
+  const cookies = await context.cookies();
+
+  return cookies
+    .filter((cookie) => AUTH_COOKIE.test(cookie.name))
+    .toSorted((a, b) => a.name.localeCompare(b.name, 'en', { numeric: true }));
+};
+
+export const readSession = async (context: BrowserContext) => {
+  const cookies = await getAuthCookies(context);
+  const value = cookies.map((cookie) => cookie.value).join('');
+  const json = Buffer.from(value.slice(SESSION_PREFIX.length), 'base64url').toString('utf-8');
+
+  return StoredSession.parse(JSON.parse(json));
+};
+
+export const expireAccessToken = async (context: BrowserContext) => {
+  const cookies = await getAuthCookies(context);
+  const session = await readSession(context);
+  const json = JSON.stringify({ ...session, expires_at: session.expires_at - 7200 });
+  let encoded = `${SESSION_PREFIX}${Buffer.from(json, 'utf-8').toString('base64url')}`;
+
+  // Keep the original chunk boundaries; the timestamp has the same number of digits.
+  await context.addCookies(
+    cookies.map((cookie) => {
+      const value = encoded.slice(0, cookie.value.length);
+      encoded = encoded.slice(cookie.value.length);
+
+      return { ...cookie, value };
+    }),
+  );
 };
