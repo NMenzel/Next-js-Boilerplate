@@ -26,3 +26,14 @@ export const UpdatePasswordValidation = z.object({
 export const ProfileValidation = z.object({
   display_name: z.string().trim().min(1).max(50),
 });
+
+/** Schemas shared by Server Actions and client-side form validation, selected by name. */
+export const FormValidations = {
+  signIn: SignInValidation,
+  signUp: SignUpValidation,
+  passwordReset: PasswordResetValidation,
+  updatePassword: UpdatePasswordValidation,
+  profile: ProfileValidation,
+};
+
+export type FormValidationName = keyof typeof FormValidations;

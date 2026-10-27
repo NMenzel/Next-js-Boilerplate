@@ -25,6 +25,7 @@ export default async function AppPage(props: { params: Promise<{ locale: string 
       <h2 className="mb-4 text-xl font-bold text-gray-900">{t('profile_heading')}</h2>
       <ActionForm
         action={updateProfile}
+        validation="profile"
         submitLabel={t('profile_submit')}
         fields={[
           {

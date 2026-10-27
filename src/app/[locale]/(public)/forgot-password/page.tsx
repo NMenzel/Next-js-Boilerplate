@@ -30,6 +30,7 @@ export default async function ForgotPasswordPage(props: ForgotPasswordPageProps)
       <p className="mb-6 text-base">{t('intro')}</p>
       <ActionForm
         action={requestPasswordReset}
+        validation="passwordReset"
         submitLabel={t('submit')}
         fields={[
           {

@@ -15,6 +15,7 @@ export default async function UpdatePasswordPage(props: { params: Promise<{ loca
       <h1 className="mb-6 text-2xl font-bold text-gray-900">{t('heading')}</h1>
       <ActionForm
         action={updatePassword}
+        validation="updatePassword"
         submitLabel={t('submit')}
         fields={[
           {

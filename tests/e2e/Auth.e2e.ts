@@ -75,6 +75,17 @@ test.describe('Authentication', () => {
     });
   });
 
+  test.describe('Without JavaScript', () => {
+    test.use({ javaScriptEnabled: false });
+
+    test('signs up through the native form post', async ({ page }) => {
+      const email = createEmail();
+      await signUp(page, email);
+
+      await expect(page.getByText(`Signed in as ${email}`)).toBeVisible();
+    });
+  });
+
   test.describe('Session refresh', () => {
     test('refreshes an expired access token in the proxy without signing out', async ({
       context,

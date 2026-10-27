@@ -32,6 +32,7 @@ export default async function SignInPage(props: SignInPageProps) {
       <h1 className="mb-6 text-2xl font-bold text-gray-900">{t('heading')}</h1>
       <ActionForm
         action={signIn}
+        validation="signIn"
         initialState={
           error === 'link_invalid'
             ? { status: 'error', message: form('error_link_invalid') }

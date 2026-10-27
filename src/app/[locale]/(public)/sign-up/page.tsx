@@ -29,6 +29,7 @@ export default async function SignUpPage(props: SignUpPageProps) {
       <h1 className="mb-6 text-2xl font-bold text-gray-900">{t('heading')}</h1>
       <ActionForm
         action={signUp}
+        validation="signUp"
         submitLabel={t('submit')}
         fields={[
           {

@@ -52,6 +52,7 @@ Conventional Commits: `type: summary` without scope. The summary is a short, spe
 ## React
 - Write plain, pure components; the React Compiler (enabled in production builds) handles memoization. Add `useMemo`/`useCallback` only when profiling shows a need.
 - Use `useEffect` only to synchronize with external systems, not to derive state or respond to events.
+- React Hook Form: read `formState` fields (e.g. `const { errors } = form.formState`) at the top of the component. Reads nested in callbacks go stale under the React Compiler. Share Zod schemas with Server Actions via `FormValidations`; the server always re-validates.
 - Single `props` param with inline type; access as `props.foo` (no destructuring).
 - Use `React.ReactNode`, not `ReactNode`.
 - Inline short event handlers; extract only when complex.
