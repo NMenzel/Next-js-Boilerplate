@@ -1,23 +1,29 @@
-# Validate commit messages
+# Fast, check-only hooks: nothing is rewritten or re-staged. CI remains authoritative.
+# Fix issues with `npm run lint:fix` (lint + format) or `npm run format`.
+
 commit-msg:
   jobs:
     - name: commitlint
       run: npx --no -- commitlint --edit {1}
 
-# Validate content before committing
 pre-commit:
+  parallel: true
   jobs:
-    - name: ultracite
-      run: npx ultracite fix --type-aware --type-check
+    - name: format
+      run: npx --no -- oxfmt --check {staged_files}
       glob:
-        - '**/*.js'
-        - '**/*.jsx'
-        - '**/*.ts'
-        - '**/*.tsx'
-        - '**/*.json'
-        - '**/*.jsonc'
-        - '**/*.css'
-      stage_fixed: true
+        - '**/*.{js,jsx,ts,tsx,json,jsonc,css}'
+    - name: lint
+      run: npx --no -- oxlint --type-aware {staged_files}
+      glob:
+        - '**/*.{js,jsx,ts,tsx}'
+
+pre-push:
+  parallel: true
+  jobs:
+    - name: typecheck
+      run: npm run typecheck
     - name: knip
       run: npm run check:deps
-      glob: '*'
+    - name: i18n
+      run: npm run check:i18n
