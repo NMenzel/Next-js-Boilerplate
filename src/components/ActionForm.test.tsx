@@ -4,15 +4,16 @@ import { page } from 'vitest/browser';
 import type { FormState } from './ActionForm';
 import { ActionForm } from './ActionForm';
 
-const fields = [
-  {
-    name: 'display_name',
-    label: 'Display name',
-    type: 'text' as const,
-    autoComplete: 'nickname',
-    error: 'Use 1 to 50 characters.',
-  },
-];
+const displayNameField = {
+  name: 'display_name',
+  label: 'Display name',
+  type: 'text' as const,
+  autoComplete: 'nickname',
+  error: 'Use 1 to 50 characters.',
+};
+const fields = [displayNameField];
+
+const echoAction = async (state: FormState): Promise<FormState> => await Promise.resolve(state);
 
 describe(ActionForm, () => {
   it('blocks submission and describes the error when client validation fails', async () => {
@@ -52,5 +53,23 @@ describe(ActionForm, () => {
 
     await expect.element(page.getByRole('status')).toHaveTextContent('Profile saved.');
     expect(submissions).toStrictEqual(['Ada']);
+  });
+
+  it('keeps the values returned by a submission made before hydration', async () => {
+    await render(
+      <ActionForm
+        action={echoAction}
+        validation="profile"
+        fields={[{ ...displayNameField, defaultValue: 'Old' }]}
+        submitLabel="Save"
+        initialState={{
+          status: 'error',
+          message: 'Something went wrong.',
+          values: { display_name: 'Ada' },
+        }}
+      />,
+    );
+
+    await expect.element(page.getByLabelText('Display name')).toHaveValue('Ada');
   });
 });

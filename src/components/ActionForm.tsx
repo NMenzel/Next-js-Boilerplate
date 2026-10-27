@@ -50,8 +50,13 @@ export const ActionForm = (props: {
     resolver: zodResolver<Record<string, string>, unknown, Record<string, string>>(
       FormValidations[props.validation],
     ),
+    // Include the values returned by a native submission made before hydration; `register`
+    // overwrites the input with these defaults.
     defaultValues: Object.fromEntries(
-      props.fields.map((field) => [field.name, field.defaultValue ?? '']),
+      props.fields.map((field) => [
+        field.name,
+        state.values?.[field.name] ?? field.defaultValue ?? '',
+      ]),
     ),
   });
   // Read formState at the top of render: `form` is a stable object, so reads nested in callbacks

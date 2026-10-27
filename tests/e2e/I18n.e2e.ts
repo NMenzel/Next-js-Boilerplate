@@ -38,5 +38,31 @@ test.describe('I18n', () => {
       expect(response?.status()).toBe(404);
       await expect(page.getByRole('heading', { name: 'Página no encontrada' })).toBeVisible();
     });
+
+    test('keeps the query string when switching language', async ({ page }) => {
+      await page.goto('/sign-in?error=link_invalid');
+      await page.getByRole('link', { name: 'Español' }).click();
+
+      await expect(page).toHaveURL(/\/es\/sign-in\?error=link_invalid$/u);
+      await expect(page.getByRole('main').getByRole('alert')).toHaveText(
+        'El enlace no es válido o ha caducado.',
+      );
+    });
+  });
+
+  test.describe('Without JavaScript', () => {
+    test.use({ javaScriptEnabled: false, locale: 'es-ES' });
+
+    test('switches from Spanish back to English and remembers the choice', async ({ page }) => {
+      await page.goto('/es/sign-in?error=link_invalid');
+      await page.getByRole('link', { name: 'English' }).click();
+
+      await expect(page).toHaveURL(/\/sign-in\?error=link_invalid$/u);
+      await expect(page.getByRole('heading', { name: 'Sign in' })).toBeVisible();
+
+      await page.goto('/');
+
+      await expect(page.getByRole('heading', { name: 'Next.js starter' })).toBeVisible();
+    });
   });
 });

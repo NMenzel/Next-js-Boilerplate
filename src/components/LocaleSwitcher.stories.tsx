@@ -19,3 +19,15 @@ export const Default: Story = {
     await expect(canvas.getByRole('link', { name: 'Español' })).toHaveAttribute('hreflang', 'es');
   },
 };
+
+export const KeepsQuery: Story = {
+  parameters: {
+    nextjs: { navigation: { pathname: '/sign-in', query: { error: 'link_invalid' } } },
+  },
+  play: async ({ canvas }) => {
+    await expect(canvas.getByRole('link', { name: 'Español' })).toHaveAttribute(
+      'href',
+      '/es/sign-in?error=link_invalid',
+    );
+  },
+};
