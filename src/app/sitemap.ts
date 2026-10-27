@@ -1,9 +1,10 @@
 import type { MetadataRoute } from 'next';
+import { Env } from '@/libs/Env';
 import { routing } from '@/libs/I18nRouting';
-import { getBaseUrl, getI18nPath } from '@/utils/Helpers';
+import { getI18nPath } from '@/utils/Helpers';
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const baseUrl = getBaseUrl();
+  const baseUrl = Env.NEXT_PUBLIC_APP_URL;
 
   return [''].map((route) => ({
     url: `${baseUrl}${route}`,

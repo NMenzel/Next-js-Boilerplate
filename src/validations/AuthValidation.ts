@@ -2,12 +2,15 @@ import * as z from 'zod';
 
 const email = z.string().trim().max(254).pipe(z.email());
 
-// Bcrypt, used by Supabase Auth, ignores bytes after 72.
-const newPassword = z.string().min(8).max(72);
+// Bcrypt, used by Supabase Auth, ignores bytes after 72. Accented letters and emoji take several
+// bytes, so count bytes rather than characters.
+const fitsBcrypt = (value: string) => new TextEncoder().encode(value).length <= 72;
+
+const newPassword = z.string().min(8).refine(fitsBcrypt);
 
 export const SignInValidation = z.object({
   email,
-  password: z.string().min(1).max(72),
+  password: z.string().min(1).refine(fitsBcrypt),
 });
 
 export const SignUpValidation = z.object({
@@ -21,6 +24,12 @@ export const PasswordResetValidation = z.object({
 
 export const UpdatePasswordValidation = z.object({
   password: newPassword,
+});
+
+/** Parameters of the confirmation and password recovery links in `supabase/templates/`. */
+export const EmailLinkValidation = z.object({
+  token_hash: z.string().min(1).max(512),
+  type: z.enum(['email', 'recovery']),
 });
 
 export const ProfileValidation = z.object({

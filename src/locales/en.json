@@ -65,7 +65,7 @@
     "password_required_error": "Enter your password.",
     "new_password_label": "New password",
     "new_password_hint": "Use 8 to 72 characters.",
-    "new_password_error": "Use 8 to 72 characters.",
+    "new_password_error": "Use 8 to 72 characters. Accented letters and emoji count as more than one.",
     "display_name_label": "Display name",
     "display_name_error": "Use 1 to 50 characters."
   },
@@ -79,7 +79,10 @@
     "success_check_email": "Check your email to confirm your account.",
     "success_password_updated": "Password updated.",
     "success_profile_saved": "Profile saved.",
-    "success_reset_sent": "If an account exists for this email, a reset link is on its way."
+    "success_reset_sent": "If an account exists for this email, a reset link is on its way.",
+    "error_password_characters": "Add the required letters, digits or symbols.",
+    "error_password_pwned": "This password appeared in a data breach. Choose another one.",
+    "error_sign_out_failed": "Sign-out failed. You are still signed in."
   },
   "LocaleSwitcher": {
     "change_language": "Change language"
@@ -88,5 +91,12 @@
     "heading": "Page not found",
     "description": "The page you are looking for does not exist.",
     "home_link": "Go to the homepage"
+  },
+  "ConfirmPage": {
+    "meta_title": "Continue",
+    "meta_description": "Finish signing in from an email link.",
+    "heading": "Continue from your email",
+    "intro": "Select the button to confirm this link.",
+    "submit": "Continue"
   }
 }

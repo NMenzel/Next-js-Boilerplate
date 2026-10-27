@@ -11,7 +11,8 @@ export const Env = createEnv({
     SENTRY_AUTH_TOKEN: z.string().optional(),
   },
   client: {
-    NEXT_PUBLIC_APP_URL: z.url().optional(),
+    // Base URL of auth email links; a missing value would send production links to localhost.
+    NEXT_PUBLIC_APP_URL: z.url(),
     NEXT_PUBLIC_SUPABASE_URL: z.url(),
     NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: z.string().min(1),
     NEXT_PUBLIC_LOGGING_LEVEL: z

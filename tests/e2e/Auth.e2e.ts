@@ -60,6 +60,28 @@ test.describe('Authentication', () => {
       await expect(page).toHaveURL(/\/sign-in$/u);
     });
 
+    test('signs out only the current browser', async ({ baseURL, browser, page }) => {
+      const email = createEmail();
+      await signUp(page, email);
+      const otherDevice = await browser.newContext({ baseURL });
+      const otherPage = await otherDevice.newPage();
+      await signIn(otherPage, email);
+
+      await expect(otherPage.getByText(`Signed in as ${email}`)).toBeVisible();
+
+      await page.getByRole('button', { name: 'Sign out' }).click();
+
+      await expect(page.getByRole('heading', { name: 'Next.js starter' })).toBeVisible();
+
+      // Force a refresh: a global sign-out would have revoked the other refresh token.
+      await expireAccessToken(otherDevice);
+      await otherPage.goto('/app');
+
+      await expect(otherPage.getByText(`Signed in as ${email}`)).toBeVisible();
+
+      await otherDevice.close();
+    });
+
     test('keeps the session across locale switches and reloads', async ({ page }) => {
       const email = createEmail();
       await signUp(page, email);
@@ -124,7 +146,11 @@ test.describe('Authentication', () => {
   });
 
   test.describe('Password recovery', () => {
-    test('resets the password from the emailed link', async ({ page, request }) => {
+    test('resets the password from a link opened in another browser', async ({
+      browser,
+      page,
+      request,
+    }) => {
       const email = createEmail();
       const newPassword = `${PASSWORD}-new`;
       await signUp(page, email);
@@ -138,30 +164,51 @@ test.describe('Authentication', () => {
         'reset link is on its way',
       );
 
-      await page.goto(await getEmailedLink(request, email));
+      const link = await getEmailedLink(request, email);
+      // Email scanners open links before the user does; opening must not use up the token.
+      const prefetch = await request.get(link);
 
-      await expect(page).toHaveURL(/\/app\/update-password$/u);
+      expect(prefetch.status()).toBe(200);
 
-      await page.getByLabel('New password').fill(newPassword);
-      await page.getByRole('button', { name: 'Update password' }).click();
+      const otherDevice = await browser.newContext();
+      const otherPage = await otherDevice.newPage();
+      await otherPage.goto(link);
+      const [response] = await Promise.all([
+        otherPage.waitForResponse((candidate) => candidate.request().method() === 'POST'),
+        otherPage.getByRole('button', { name: 'Continue' }).click(),
+      ]);
 
-      await expect(page.getByRole('main').getByRole('status')).toHaveText('Password updated.');
+      // The response sets the session cookies, so shared caches must not store it.
+      expect(response.headers()['cache-control']).toContain('no-store');
+      await expect(otherPage).toHaveURL(/\/app\/update-password$/u);
 
-      await page.context().clearCookies();
+      await otherPage.getByLabel('New password').fill(newPassword);
+      await otherPage.getByRole('button', { name: 'Update password' }).click();
+
+      await expect(otherPage.getByRole('main').getByRole('status')).toHaveText('Password updated.');
+
+      await otherDevice.close();
       await signIn(page, email, newPassword);
 
       await expect(page.getByText(`Signed in as ${email}`)).toBeVisible();
     });
   });
 
-  test.describe('Auth callback', () => {
-    test('sends invalid links to sign-in and ignores off-site targets', async ({ page }) => {
-      await page.goto('/auth/callback?code=invalid&next=//evil.example');
+  test.describe('Email links', () => {
+    test('sends links with missing parameters to sign-in', async ({ page }) => {
+      await page.goto('/auth/confirm?token_hash=abc');
 
       await expect(page).toHaveURL(/\/sign-in\?error=link_invalid$/u);
       await expect(page.getByRole('main').getByRole('alert')).toHaveText(
         'The link is invalid or has expired.',
       );
+    });
+
+    test('rejects an invalid token and ignores redirect targets', async ({ page }) => {
+      await page.goto('/auth/confirm?token_hash=invalid&type=recovery&next=//evil.example');
+      await page.getByRole('button', { name: 'Continue' }).click();
+
+      await expect(page).toHaveURL(/^http:\/\/localhost:\d+\/sign-in\?error=link_invalid$/u);
     });
   });
 });

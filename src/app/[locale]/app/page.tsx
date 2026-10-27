@@ -6,12 +6,17 @@ import { withRls } from '@/libs/DB';
 import { requireUserClaims } from '@/libs/Supabase';
 import { profiles } from '@/models/Schema';
 
-export default async function AppPage(props: { params: Promise<{ locale: string }> }) {
+export default async function AppPage(props: {
+  params: Promise<{ locale: string }>;
+  searchParams: Promise<{ error?: string }>;
+}) {
   const { locale } = await props.params;
+  const { error } = await props.searchParams;
   setRequestLocale(locale);
   const claims = await requireUserClaims(locale);
   const t = await getTranslations({ locale, namespace: 'AppPage' });
   const fields = await getTranslations({ locale, namespace: 'AuthFields' });
+  const form = await getTranslations({ locale, namespace: 'Form' });
 
   const [profile] = await withRls(
     claims,
@@ -25,6 +30,11 @@ export default async function AppPage(props: { params: Promise<{ locale: string 
   return (
     <>
       <h1 className="mb-2 text-2xl font-bold text-gray-900">{t('heading')}</h1>
+      {error === 'sign_out_failed' && (
+        <p role="alert" className="mb-2 font-medium text-red-700">
+          {form('error_sign_out_failed')}
+        </p>
+      )}
       <p className="mb-8 text-base">{t('signed_in_as', { email: claims.email ?? '' })}</p>
 
       <h2 className="mb-4 text-xl font-bold text-gray-900">{t('profile_heading')}</h2>

@@ -65,7 +65,7 @@
     "password_required_error": "Introduce tu contraseña.",
     "new_password_label": "Nueva contraseña",
     "new_password_hint": "Usa entre 8 y 72 caracteres.",
-    "new_password_error": "Usa entre 8 y 72 caracteres.",
+    "new_password_error": "Usa entre 8 y 72 caracteres. Las letras con tilde y los emojis cuentan como más de uno.",
     "display_name_label": "Nombre visible",
     "display_name_error": "Usa entre 1 y 50 caracteres."
   },
@@ -79,7 +79,10 @@
     "success_check_email": "Revisa tu correo electrónico para confirmar tu cuenta.",
     "success_password_updated": "Contraseña actualizada.",
     "success_profile_saved": "Perfil guardado.",
-    "success_reset_sent": "Si existe una cuenta con este correo electrónico, te hemos enviado un enlace."
+    "success_reset_sent": "Si existe una cuenta con este correo electrónico, te hemos enviado un enlace.",
+    "error_password_characters": "Añade las letras, números o símbolos requeridos.",
+    "error_password_pwned": "Esta contraseña apareció en una filtración de datos. Elige otra.",
+    "error_sign_out_failed": "No se pudo cerrar la sesión. Sigues con la sesión iniciada."
   },
   "LocaleSwitcher": {
     "change_language": "Cambiar idioma"
@@ -88,5 +91,12 @@
     "heading": "Página no encontrada",
     "description": "La página que buscas no existe.",
     "home_link": "Ir a la página de inicio"
+  },
+  "ConfirmPage": {
+    "meta_title": "Continuar",
+    "meta_description": "Termina de iniciar sesión desde un enlace de correo.",
+    "heading": "Continúa desde tu correo",
+    "intro": "Selecciona el botón para confirmar este enlace.",
+    "submit": "Continuar"
   }
 }

@@ -1,11 +1,13 @@
 import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
+import { cache } from 'react';
 import { Env } from './Env';
 import { redirect } from './I18nNavigation';
 
 /**
  * Creates a Supabase client bound to the auth cookies of the current request.
- * Use it in Server Components, Server Actions and Route Handlers; create a new one per request.
+ * Use it in Server Components and Server Actions; create a new one per request. A Route Handler
+ * that signs users in must also send `Cache-Control: private, no-store`.
  * @returns A typed Supabase server client.
  */
 export const createClient = async () => {
@@ -17,6 +19,9 @@ export const createClient = async () => {
     {
       cookies: {
         getAll: () => cookieStore.getAll(),
+        // The cache headers (second argument) cannot be set here. Cookies are only written by Server
+        // Actions, whose POST responses shared caches do not store; `proxy.ts` adds the headers to
+        // GET responses that refresh the session.
         setAll: (cookiesToSet) => {
           try {
             for (const { name, value, options } of cookiesToSet) {
@@ -32,16 +37,16 @@ export const createClient = async () => {
 };
 
 /**
- * Returns the verified JWT claims of the signed-in user.
+ * Returns the verified JWT claims of the signed-in user, once per request (layouts and pages share it).
  * Uses `getClaims()`, which validates the token signature, unlike `getSession()`.
  * @returns The claims, or `null` for anonymous visitors.
  */
-const getUserClaims = async () => {
+const getUserClaims = cache(async () => {
   const supabase = await createClient();
   const { data } = await supabase.auth.getClaims();
 
   return data?.claims ?? null;
-};
+});
 
 /**
  * Returns the verified claims of the signed-in user, or redirects anonymous visitors to sign-in.
