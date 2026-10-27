@@ -1,37 +1,85 @@
 {
-  "RootLayout": {
+  "PublicLayout": {
     "home_link": "Home",
     "sign_in_link": "Sign in",
     "sign_up_link": "Sign up"
   },
   "BaseTemplate": {
-    "description": "Starter code for your Nextjs Boilerplate with Tailwind CSS",
-    "footer_text": "© {year} {name}.",
-    "main_navigation_label": "Main navigation"
+    "description": "A product-neutral Next.js and Supabase starter",
+    "footer_text": "© {year} {name}",
+    "main_navigation_label": "Main navigation",
+    "account_navigation_label": "Account",
+    "skip_link": "Skip to main content"
   },
-  "Index": {
+  "IndexPage": {
     "meta_title": "Next.js starter",
-    "meta_description": "A product-neutral Next.js starter.",
+    "meta_description": "A product-neutral Next.js and Supabase starter.",
     "heading": "Next.js starter",
-    "intro": "A product-neutral foundation with authentication, localization, testing and CI. Replace this page with your product."
+    "intro": "Authentication, localization, testing and CI are ready. Replace this page with your product.",
+    "app_link": "Open the app"
   },
-  "SignIn": {
+  "SignInPage": {
     "meta_title": "Sign in",
-    "meta_description": "Seamlessly sign in to your account with our user-friendly login process."
+    "meta_description": "Sign in to your account.",
+    "heading": "Sign in",
+    "submit": "Sign in",
+    "forgot_password_link": "Forgot your password?",
+    "sign_up_link": "Create an account"
   },
-  "SignUp": {
+  "SignUpPage": {
     "meta_title": "Sign up",
-    "meta_description": "Effortlessly create an account through our intuitive sign-up process."
+    "meta_description": "Create an account.",
+    "heading": "Create an account",
+    "submit": "Sign up",
+    "sign_in_link": "Already have an account? Sign in"
   },
-  "Dashboard": {
-    "hello_message": "Hello {email}!"
+  "ForgotPasswordPage": {
+    "meta_title": "Reset password",
+    "meta_description": "Request a password reset link.",
+    "heading": "Reset your password",
+    "intro": "Enter your email and we will send you a reset link.",
+    "submit": "Send reset link",
+    "sign_in_link": "Back to sign in"
   },
-  "DashboardLayout": {
-    "meta_title": "Dashboard",
-    "meta_description": "Manage your account from the dashboard.",
-    "dashboard_link": "Dashboard",
-    "user_profile_link": "Manage your account",
+  "AppLayout": {
+    "meta_title": "App",
+    "meta_description": "Your account.",
+    "app_link": "App",
+    "update_password_link": "Change password",
     "sign_out": "Sign out"
+  },
+  "AppPage": {
+    "heading": "Welcome",
+    "signed_in_as": "Signed in as {email}",
+    "profile_heading": "Profile",
+    "profile_submit": "Save profile"
+  },
+  "UpdatePasswordPage": {
+    "heading": "Change password",
+    "submit": "Update password"
+  },
+  "AuthFields": {
+    "email_label": "Email",
+    "email_error": "Enter a valid email address.",
+    "password_label": "Password",
+    "password_required_error": "Enter your password.",
+    "new_password_label": "New password",
+    "new_password_hint": "Use 8 to 72 characters.",
+    "new_password_error": "Use 8 to 72 characters.",
+    "display_name_label": "Display name",
+    "display_name_error": "Use 1 to 50 characters."
+  },
+  "Form": {
+    "error_generic": "Something went wrong.",
+    "error_invalid_credentials": "Invalid email or password.",
+    "error_link_invalid": "The link is invalid or has expired.",
+    "error_rate_limited": "Too many attempts. Wait a moment.",
+    "error_same_password": "Choose a different password.",
+    "error_sign_up_disabled": "Sign-up is not available.",
+    "success_check_email": "Check your email to confirm your account.",
+    "success_password_updated": "Password updated.",
+    "success_profile_saved": "Profile saved.",
+    "success_reset_sent": "If an account exists for this email, a reset link is on its way."
   },
   "LocaleSwitcher": {
     "change_language": "Change language"

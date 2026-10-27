@@ -3,22 +3,19 @@ import { LocaleSwitcher } from '@/components/LocaleSwitcher';
 import { Link } from '@/libs/I18nNavigation';
 import { BaseTemplate } from '@/templates/BaseTemplate';
 
-export default async function Layout(props: {
+export default async function PublicLayout(props: {
   children: React.ReactNode;
   params: Promise<{ locale: string }>;
 }) {
   const { locale } = await props.params;
   setRequestLocale(locale);
-  const t = await getTranslations({
-    locale,
-    namespace: 'RootLayout',
-  });
+  const t = await getTranslations({ locale, namespace: 'PublicLayout' });
 
   return (
     <BaseTemplate
       leftNav={
         <li>
-          <Link href="/" className="border-none text-gray-700 hover:text-gray-900">
+          <Link href="/" className="text-gray-700 hover:text-gray-900">
             {t('home_link')}
           </Link>
         </li>
@@ -26,24 +23,22 @@ export default async function Layout(props: {
       rightNav={
         <>
           <li>
-            <Link href="/sign-in/" className="border-none text-gray-700 hover:text-gray-900">
+            <Link href="/sign-in" className="text-gray-700 hover:text-gray-900">
               {t('sign_in_link')}
             </Link>
           </li>
-
           <li>
-            <Link href="/sign-up/" className="border-none text-gray-700 hover:text-gray-900">
+            <Link href="/sign-up" className="text-gray-700 hover:text-gray-900">
               {t('sign_up_link')}
             </Link>
           </li>
-
           <li>
             <LocaleSwitcher />
           </li>
         </>
       }
     >
-      <div className="py-5 text-xl [&_p]:my-6">{props.children}</div>
+      {props.children}
     </BaseTemplate>
   );
 }

@@ -1,51 +1,45 @@
-import { SignOutButton } from '@clerk/nextjs';
 import type { Metadata } from 'next';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
+import { signOut } from '@/actions/AuthActions';
 import { LocaleSwitcher } from '@/components/LocaleSwitcher';
 import { Link } from '@/libs/I18nNavigation';
+import { requireUserClaims } from '@/libs/Supabase';
 import { BaseTemplate } from '@/templates/BaseTemplate';
 
-type DashboardLayoutProps = {
+type AppLayoutProps = {
   children: React.ReactNode;
   params: Promise<{ locale: string }>;
 };
 
-export async function generateMetadata(props: DashboardLayoutProps): Promise<Metadata> {
+export async function generateMetadata(props: AppLayoutProps): Promise<Metadata> {
   const { locale } = await props.params;
-  const t = await getTranslations({
-    locale,
-    namespace: 'DashboardLayout',
-  });
+  const t = await getTranslations({ locale, namespace: 'AppLayout' });
 
   return {
     title: t('meta_title'),
     description: t('meta_description'),
+    robots: { index: false, follow: false },
   };
 }
 
-export default async function DashboardLayout(props: DashboardLayoutProps) {
+export default async function AppLayout(props: AppLayoutProps) {
   const { locale } = await props.params;
   setRequestLocale(locale);
-  const t = await getTranslations({
-    locale,
-    namespace: 'DashboardLayout',
-  });
+  await requireUserClaims(locale);
+  const t = await getTranslations({ locale, namespace: 'AppLayout' });
 
   return (
     <BaseTemplate
       leftNav={
         <>
           <li>
-            <Link href="/dashboard/" className="border-none text-gray-700 hover:text-gray-900">
-              {t('dashboard_link')}
+            <Link href="/app" className="text-gray-700 hover:text-gray-900">
+              {t('app_link')}
             </Link>
           </li>
           <li>
-            <Link
-              href="/dashboard/user-profile/"
-              className="border-none text-gray-700 hover:text-gray-900"
-            >
-              {t('user_profile_link')}
+            <Link href="/app/update-password" className="text-gray-700 hover:text-gray-900">
+              {t('update_password_link')}
             </Link>
           </li>
         </>
@@ -53,13 +47,12 @@ export default async function DashboardLayout(props: DashboardLayoutProps) {
       rightNav={
         <>
           <li>
-            <SignOutButton>
-              <button className="border-none text-gray-700 hover:text-gray-900" type="button">
+            <form action={signOut}>
+              <button type="submit" className="text-gray-700 hover:text-gray-900">
                 {t('sign_out')}
               </button>
-            </SignOutButton>
+            </form>
           </li>
-
           <li>
             <LocaleSwitcher />
           </li>

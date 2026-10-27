@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
+import { Link } from '@/libs/I18nNavigation';
 
 type IndexPageProps = {
   params: Promise<{ locale: string }>;
@@ -7,10 +8,7 @@ type IndexPageProps = {
 
 export async function generateMetadata(props: IndexPageProps): Promise<Metadata> {
   const { locale } = await props.params;
-  const t = await getTranslations({
-    locale,
-    namespace: 'Index',
-  });
+  const t = await getTranslations({ locale, namespace: 'IndexPage' });
 
   return {
     title: t('meta_title'),
@@ -18,18 +16,18 @@ export async function generateMetadata(props: IndexPageProps): Promise<Metadata>
   };
 }
 
-export default async function Index(props: IndexPageProps) {
+export default async function IndexPage(props: IndexPageProps) {
   const { locale } = await props.params;
   setRequestLocale(locale);
-  const t = await getTranslations({
-    locale,
-    namespace: 'Index',
-  });
+  const t = await getTranslations({ locale, namespace: 'IndexPage' });
 
   return (
     <>
-      <h2 className="mt-5 text-2xl font-bold">{t('heading')}</h2>
-      <p className="text-base">{t('intro')}</p>
+      <h1 className="mb-4 text-3xl font-bold text-gray-900">{t('heading')}</h1>
+      <p className="mb-6 text-lg">{t('intro')}</p>
+      <Link href="/app" className="text-lg text-blue-700 underline">
+        {t('app_link')}
+      </Link>
     </>
   );
 }

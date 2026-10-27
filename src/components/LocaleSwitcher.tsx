@@ -26,12 +26,12 @@ export const LocaleSwitcher = () => {
     <select
       defaultValue={locale}
       onChange={handleChange}
-      className="border border-gray-300 font-medium focus:outline-hidden focus-visible:ring-3"
+      className="rounded-sm border border-gray-500 px-1 font-medium"
       aria-label={t('change_language')}
     >
       {routing.locales.map((elt) => (
-        <option key={elt} value={elt}>
-          {elt.toUpperCase()}
+        <option key={elt} value={elt} lang={elt}>
+          {new Intl.DisplayNames([elt], { type: 'language' }).of(elt)}
         </option>
       ))}
     </select>

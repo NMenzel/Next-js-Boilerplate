@@ -1,0 +1,87 @@
+{
+  "PublicLayout": {
+    "home_link": "Inicio",
+    "sign_in_link": "Iniciar sesión",
+    "sign_up_link": "Registrarse"
+  },
+  "BaseTemplate": {
+    "description": "Un starter de Next.js y Supabase neutral respecto al producto",
+    "footer_text": "© {year} {name}",
+    "main_navigation_label": "Navegación principal",
+    "account_navigation_label": "Cuenta",
+    "skip_link": "Saltar al contenido principal"
+  },
+  "IndexPage": {
+    "meta_title": "Starter de Next.js",
+    "meta_description": "Un starter de Next.js y Supabase neutral respecto al producto.",
+    "heading": "Starter de Next.js",
+    "intro": "La autenticación, la localización, las pruebas y la CI ya están listas. Sustituye esta página por tu producto.",
+    "app_link": "Abrir la aplicación"
+  },
+  "SignInPage": {
+    "meta_title": "Iniciar sesión",
+    "meta_description": "Inicia sesión en tu cuenta.",
+    "heading": "Iniciar sesión",
+    "submit": "Iniciar sesión",
+    "forgot_password_link": "¿Has olvidado tu contraseña?",
+    "sign_up_link": "Crear una cuenta"
+  },
+  "SignUpPage": {
+    "meta_title": "Registrarse",
+    "meta_description": "Crea una cuenta.",
+    "heading": "Crear una cuenta",
+    "submit": "Registrarse",
+    "sign_in_link": "¿Ya tienes una cuenta? Inicia sesión"
+  },
+  "ForgotPasswordPage": {
+    "meta_title": "Restablecer contraseña",
+    "meta_description": "Solicita un enlace para restablecer tu contraseña.",
+    "heading": "Restablece tu contraseña",
+    "intro": "Introduce tu correo electrónico y te enviaremos un enlace para restablecerla.",
+    "submit": "Enviar enlace",
+    "sign_in_link": "Volver a iniciar sesión"
+  },
+  "AppLayout": {
+    "meta_title": "Aplicación",
+    "meta_description": "Tu cuenta.",
+    "app_link": "Aplicación",
+    "update_password_link": "Cambiar contraseña",
+    "sign_out": "Cerrar sesión"
+  },
+  "AppPage": {
+    "heading": "Te damos la bienvenida",
+    "signed_in_as": "Has iniciado sesión como {email}",
+    "profile_heading": "Perfil",
+    "profile_submit": "Guardar perfil"
+  },
+  "UpdatePasswordPage": {
+    "heading": "Cambiar contraseña",
+    "submit": "Actualizar contraseña"
+  },
+  "AuthFields": {
+    "email_label": "Correo electrónico",
+    "email_error": "Introduce un correo electrónico válido.",
+    "password_label": "Contraseña",
+    "password_required_error": "Introduce tu contraseña.",
+    "new_password_label": "Nueva contraseña",
+    "new_password_hint": "Usa entre 8 y 72 caracteres.",
+    "new_password_error": "Usa entre 8 y 72 caracteres.",
+    "display_name_label": "Nombre visible",
+    "display_name_error": "Usa entre 1 y 50 caracteres."
+  },
+  "Form": {
+    "error_generic": "Algo ha salido mal.",
+    "error_invalid_credentials": "Correo electrónico o contraseña incorrectos.",
+    "error_link_invalid": "El enlace no es válido o ha caducado.",
+    "error_rate_limited": "Demasiados intentos. Espera un momento.",
+    "error_same_password": "Elige una contraseña diferente.",
+    "error_sign_up_disabled": "El registro no está disponible.",
+    "success_check_email": "Revisa tu correo electrónico para confirmar tu cuenta.",
+    "success_password_updated": "Contraseña actualizada.",
+    "success_profile_saved": "Perfil guardado.",
+    "success_reset_sent": "Si existe una cuenta con este correo electrónico, te hemos enviado un enlace."
+  },
+  "LocaleSwitcher": {
+    "change_language": "Cambiar idioma"
+  }
+}
