@@ -22,8 +22,6 @@ if (!process.env.NEXT_PUBLIC_SENTRY_DISABLED) {
       }),
       Sentry.consoleLoggingIntegration(),
       Sentry.browserTracingIntegration(),
-
-      ...(process.env.NODE_ENV === 'development' ? [Sentry.spotlightBrowserIntegration()] : []),
     ],
 
     // Define how likely traces are sampled. Adjust this value in production, or use tracesSampler for greater control.
