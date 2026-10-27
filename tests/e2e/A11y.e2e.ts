@@ -13,7 +13,17 @@ const getViolations = async (page: Page) => {
 
 test.describe('Accessibility', () => {
   test.describe('Automated WCAG checks', () => {
-    for (const path of ['/', '/sign-in', '/sign-up', '/forgot-password', '/es', '/es/sign-up']) {
+    for (const path of [
+      '/',
+      '/sign-in',
+      '/sign-up',
+      '/forgot-password',
+      '/auth/confirm?token_hash=abc&type=recovery',
+      '/missing-page',
+      '/es',
+      '/es/sign-up',
+      '/es/missing-page',
+    ]) {
       test(`finds no violations on ${path}`, async ({ page }) => {
         await page.goto(path);
 
@@ -21,8 +31,12 @@ test.describe('Accessibility', () => {
       });
     }
 
-    test('finds no violations on the signed-in app page', async ({ page }) => {
+    test('finds no violations on the signed-in app pages', async ({ page }) => {
       await signUp(page, createEmail());
+
+      expect(await getViolations(page)).toEqual([]);
+
+      await page.goto('/app/update-password');
 
       expect(await getViolations(page)).toEqual([]);
     });

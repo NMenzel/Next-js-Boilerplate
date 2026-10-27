@@ -6,6 +6,8 @@ export default function NotFoundPage() {
 
   return (
     <main className="mx-auto max-w-3xl px-4 py-16">
+      {/* Nested not-found files ignore `generateMetadata`; React hoists this into <head>. */}
+      <title>{t('heading')}</title>
       <h1 className="mb-4 text-3xl font-bold text-gray-900">{t('heading')}</h1>
       <p className="mb-6 text-lg">{t('description')}</p>
       <Link href="/" className="text-lg text-blue-700 underline">
