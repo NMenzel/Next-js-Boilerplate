@@ -1,1 +1,9 @@
 @import 'tailwindcss';
+
+@layer base {
+  /* Consistent, high-contrast keyboard focus indicator. */
+  :focus-visible {
+    outline: 2px solid var(--color-blue-700);
+    outline-offset: 2px;
+  }
+}

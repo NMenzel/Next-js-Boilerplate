@@ -64,7 +64,7 @@ test.describe('Authentication', () => {
       const email = createEmail();
       await signUp(page, email);
 
-      await page.getByLabel('Change language').selectOption('es');
+      await page.getByRole('link', { name: 'Español' }).click();
 
       await expect(page).toHaveURL(/\/es\/app$/u);
       await expect(page.getByText(`Has iniciado sesión como ${email}`)).toBeVisible();

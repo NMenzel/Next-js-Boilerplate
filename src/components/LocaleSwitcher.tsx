@@ -1,39 +1,35 @@
 'use client';
 
 import { useLocale, useTranslations } from 'next-intl';
-import type { ChangeEventHandler } from 'react';
-import { usePathname, useRouter } from '@/libs/I18nNavigation';
+import { Link, usePathname } from '@/libs/I18nNavigation';
 import { routing } from '@/libs/I18nRouting';
 
+// Links instead of an auto-navigating <select>: changing a select must not change context (WCAG 3.2.2).
 export const LocaleSwitcher = () => {
   const t = useTranslations('LocaleSwitcher');
-  const router = useRouter();
   const pathname = usePathname();
   const locale = useLocale();
 
-  const handleChange: ChangeEventHandler<HTMLSelectElement> = (event) => {
-    const newLocale = event.target.value;
-
-    if (newLocale === locale) {
-      return;
-    }
-
-    const { search } = window.location;
-    router.push(`${pathname}${search}`, { locale: newLocale, scroll: false });
-  };
-
   return (
-    <select
-      defaultValue={locale}
-      onChange={handleChange}
-      className="rounded-sm border border-gray-500 px-1 font-medium"
-      aria-label={t('change_language')}
-    >
-      {routing.locales.map((elt) => (
-        <option key={elt} value={elt} lang={elt}>
-          {new Intl.DisplayNames([elt], { type: 'language' }).of(elt)}
-        </option>
-      ))}
-    </select>
+    <ul aria-label={t('change_language')} className="flex gap-x-3">
+      {routing.locales.map((elt) => {
+        const name = new Intl.DisplayNames([elt], { type: 'language' }).of(elt) ?? elt;
+
+        return (
+          <li key={elt}>
+            <Link
+              href={pathname}
+              locale={elt}
+              lang={elt}
+              hrefLang={elt}
+              aria-current={elt === locale ? 'true' : undefined}
+              className="text-gray-700 hover:text-gray-900 aria-[current]:font-bold aria-[current]:text-gray-900"
+            >
+              {name.charAt(0).toLocaleUpperCase(elt) + name.slice(1)}
+            </Link>
+          </li>
+        );
+      })}
+    </ul>
   );
 };

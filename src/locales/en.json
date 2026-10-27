@@ -83,5 +83,10 @@
   },
   "LocaleSwitcher": {
     "change_language": "Change language"
+  },
+  "NotFoundPage": {
+    "heading": "Page not found",
+    "description": "The page you are looking for does not exist.",
+    "home_link": "Go to the homepage"
   }
 }
