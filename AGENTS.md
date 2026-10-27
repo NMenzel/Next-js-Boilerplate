@@ -20,7 +20,8 @@ npm is the only package manager (`package-lock.json`). Use these scripts:
 - `dev`, `build`, `start`
 - `typecheck`, `lint`, `lint:fix`, `format`, `format:check`, `check:deps`, `check:i18n`
 - `clean`, `check` (all static checks), `verify` (full local CI-equivalent)
-- `test`, `test:db`, `test:e2e`, `test:rls`
+- `test`, `test:db`, `test:e2e`, `test:rls`, `test:storybook`
+- `storybook`, `build-storybook`
 - `db:start`, `db:stop`, `db:reset`, `db:generate`, `db:migrate`, `check:migrations`
 
 ## Git commits
@@ -79,7 +80,7 @@ Conventional Commits: `type: summary` without scope. The summary is a short, spe
 - Order: description → `@param` → `@returns` → `@throws` (only if it can throw).
 
 ## Tests
-- `*.test.ts(x)` for unit/component tests and `*.db.test.ts` for tests against the local database, co-located with the implementation. `*.e2e.ts` for Playwright tests in `tests/e2e/`. SQL RLS tests in `supabase/tests/database/`.
+- `*.test.ts(x)` for unit/component tests, `*.db.test.ts` for tests against the local database and `*.stories.tsx` for shared components, co-located with the implementation. Stories run as tests (play functions and axe); give them realistic labels and messages. `*.e2e.ts` for Playwright tests in `tests/e2e/`. SQL RLS tests in `supabase/tests/database/`.
 - Top `describe` = subject; nested `describe` to group scenarios or contexts.
 - `it` titles: short, third-person present, `verb + object + context`. Sentence case, no period.
 - Omit "should/works/handles/checks/validates". State what, not how.

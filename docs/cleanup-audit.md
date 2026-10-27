@@ -50,7 +50,7 @@ Commands run on the base commit, without hosted credentials.
 | Dependency / integration | Decision | Touched files | Reason | Risk |
 |---|---|---|---|---|
 | Clerk (`@clerk/nextjs`, `@clerk/localizations`, Knip ignore for `@clerk/shared`) | **Replace** with Supabase Auth (`@supabase/ssr`, `@supabase/supabase-js`) | `src/proxy.ts`, `src/libs/Env.ts`, `src/utils/AppConfig.ts`, `src/app/[locale]/(auth)/**`, `src/components/Hello.tsx`, `src/styles/global.css` (`clerk` CSS layer), `.env`, CI `CLERK_SECRET_KEY`, `knip.config.ts`, README | Paid SaaS; required secret for build and e2e; spec mandates Supabase | Auth rewrite; session handling must be verified end to end |
-| Drizzle ORM / Drizzle Kit, `pg`, `@types/pg`, `dotenv-cli` | **Replace** with Supabase CLI SQL migrations + generated types | `drizzle.config.ts`, `migrations/**`, `src/models/Schema.ts`, `src/libs/DB.ts`, `src/utils/DBConnection.ts`, `next.config.ts` (`outputFileTracingIncludes`), scripts `db:*`, `build` | One database workflow; RLS lives in SQL | Loss of ORM query builder (acceptable; Supabase client + RLS) |
+| Drizzle ORM / Drizzle Kit, `pg`, `@types/pg`, `dotenv-cli` | **Replace** with Supabase CLI SQL migrations + generated types. **Superseded:** Drizzle, `pg` and `@types/pg` restored at the owner's request ([reintegration](#owner-requested-reintegration)); `dotenv-cli` stays removed | `drizzle.config.ts`, `migrations/**`, `src/models/Schema.ts`, `src/libs/DB.ts`, `src/utils/DBConnection.ts`, `next.config.ts` (`outputFileTracingIncludes`), scripts `db:*`, `build` | One database workflow; RLS lives in SQL | Loss of ORM query builder (acceptable; Supabase client + RLS) |
 | PGlite (`@electric-sql/pglite-socket`) | **Remove** | scripts `dev`, `build-local`, `db-server:*`, `playwright.config.ts` | Replaced by `supabase start`; broken on Windows | Requires Docker locally |
 | Neon | **Remove** references | `.env*`, `Schema.ts`, `DBConnection.ts`, home page, README | Affiliate links | None |
 | Crowdin | **Remove** | `crowdin.yml`, `.github/workflows/crowdin.yml`, CI `synchronize-with-crowdin`, `src/libs/I18n.ts` comments, About page, README | Translation SaaS; dictionaries are checked in | None |
@@ -61,12 +61,12 @@ Commands run on the base commit, without hosted credentials.
 | Chromatic (`@chromatic-com/playwright`) | **Remove** | `playwright.config.ts`, `tests/e2e/Visual.e2e.ts`, CI | Paid visual snapshots | None |
 | Codecov | **Remove** | `codecov.yml`, CI upload step | Paid coverage SaaS | None |
 | `@vitest/coverage-v8` | **Remove** (defer) | `vitest.config.ts`, CI | Only consumer was Codecov upload | Coverage can be re-added in one line |
-| Storybook (`storybook`, `@storybook/*`, `.storybook/**`, `*.stories.tsx`) | **Remove** | `.storybook/**`, `src/templates/BaseTemplate.stories.tsx`, `tsconfig.json`, `.gitignore`, CI | Only one demo story; upstream already needed a Next 16.4 workaround | No visual component catalogue (not needed yet) |
-| semantic-release + `release.yml` + `package.json#release` | **Remove** | `.github/workflows/release.yml`, `package.json` | Private application starter is not published | None |
+| Storybook (`storybook`, `@storybook/*`, `.storybook/**`, `*.stories.tsx`) | **Remove**. **Superseded:** restored at the owner's request ([reintegration](#owner-requested-reintegration)) | `.storybook/**`, `src/templates/BaseTemplate.stories.tsx`, `tsconfig.json`, `.gitignore`, CI | Only one demo story; upstream already needed a Next 16.4 workaround | No visual component catalogue (not needed yet) |
+| semantic-release + `release.yml` + `package.json#release` | **Remove**. **Superseded:** restored at the owner's request, GitHub releases only ([reintegration](#owner-requested-reintegration)) | `.github/workflows/release.yml`, `package.json` | Private application starter is not published | None |
 | Spotlight (`@spotlightjs/spotlight`, `dev:spotlight`, `hono` override) | **Remove** | `package.json`, `src/instrumentation*.ts` | Dev-only Sentry UI; pulls vulnerable `express`/`hono` tree | None |
 | `@commitlint/prompt-cli` (`commit` script) | **Remove** | `package.json` | Interactive helper, not required | None |
-| `npm-run-all`, `rimraf` | **Remove** | scripts `dev`, `build-local`, `clean` | No parallel scripts remain; `npm-run-all` is unmaintained and pulls vulnerable `shell-quote` | None |
-| `react-hook-form`, `@hookform/resolvers` | **Remove** | `src/components/CounterForm.tsx` | Only the counter demo used them; auth forms use native forms + Server Actions | None |
+| `npm-run-all`, `rimraf` | **Remove**. **Superseded:** restored at the owner's request ([reintegration](#owner-requested-reintegration)) | scripts `dev`, `build-local`, `clean` | No parallel scripts remain; `npm-run-all` is unmaintained and pulls vulnerable `shell-quote` | None |
+| `react-hook-form`, `@hookform/resolvers` | **Remove**. **Superseded:** restored at the owner's request ([reintegration](#owner-requested-reintegration)) | `src/components/CounterForm.tsx` | Only the counter demo used them; auth forms use native forms + Server Actions | None |
 | `@faker-js/faker` | **Remove** | counter tests | Only counter tests used it | None |
 | Sponsor / demo UI (`Sponsors`, `DemoBadge`, `DemoBanner`, `Hello`, About, Counter, Portfolio, `/api/counter`, `CounterValidation`) | **Remove** | `src/components/**`, `src/app/[locale]/(marketing)/**`, `src/app/api/**`, `src/validations/**`, `src/locales/*` | Promotional/demo content | None |
 | Footer back-link test to `nextjs-boilerplate.com` | **Remove** | `src/templates/BaseTemplate.tsx`, `BaseTemplate.test.tsx` | Promotional request, not a license term; MIT attribution is kept in `LICENSE` and README | None |
@@ -150,6 +150,36 @@ Commit `3ce6aba`: `docs/architecture.md`, ADR-001 to ADR-005. Upload, job and pr
 Commits `c9d1288` (CI, hooks), `ae4f7cf` (README, AGENTS.md, CLAUDE.md) and the handoff commit. Lefthook pre-commit is now check-only on staged files (verified to reject a badly formatted, lint-failing file without modifying it); whole-repo checks moved to pre-push. CI workflow validated with `actionlint`; not yet run on GitHub. Fresh-clone verification and the full command list are in [starter-handoff.md](starter-handoff.md).
 
 Additional finding: `next dev` corrupts `.next/dev/prerender-manifest.json` under concurrent first requests ([vercel/next.js#96664](https://github.com/vercel/next.js/issues/96664)); reproduced locally, documented in the README, avoided in tests by running E2E against `next start`.
+
+### Owner-requested reintegration
+
+After Phase 6 the repository owner asked to keep Storybook, React Hook Form, Zod, rimraf, Drizzle, semantic-release and npm-run-all and to integrate them into the code. Each package now has a real consumer and a test or CI step; none is installed only for later use.
+
+| Package | Integration | Files | Verified by | Commit |
+|---|---|---|---|---|
+| `rimraf@6.1.3` | `npm run clean` removes build, test and Storybook output on every OS | `package.json` | Manual run on Windows | `a5496ca` |
+| `npm-run-all@4.1.5` | `check` (typecheck, then lint/format/Knip/i18n/migrations in parallel with aggregated output) and `verify` (`check` plus every test suite) | `package.json` | `npm run check`, `npm run verify` | `a5496ca` |
+| `react-hook-form@7.91.0`, `@hookform/resolvers@6.0.1` | `ActionForm` validates in the browser with `zodResolver` and posts the same `FormData` to the Server Action; the native form post still works without JavaScript | `src/components/ActionForm.tsx`, auth and app pages | `ActionForm.test.tsx`, E2E "Without JavaScript" sign-up | `4f27a4a` |
+| `zod@4.6.7` (never removed) | One schema per form in `FormValidations`, shared by the browser and the Server Actions, which always re-validate | `src/validations/AuthValidation.ts` | Unit and component tests | `4f27a4a` |
+| `drizzle-orm@0.45.4`, `drizzle-kit@0.31.11`, `pg@8.23.1` | Schema and RLS policies in `src/models/Schema.ts`; Drizzle Kit generates SQL into `supabase/migrations/` (Supabase timestamp prefix) and the Supabase CLI applies it, so there is one migration history; queries run through `withRls()` | `src/libs/DB.ts`, `src/models/Schema.ts`, `drizzle.config.ts`, `supabase/migrations/**`, `ProfileActions.ts`, `/app` page | `test:db` (Drizzle through RLS), `test:rls` (pgTAP), CI drift check | `ebb2b79` |
+| Storybook `10.6.5` (`@storybook/nextjs-vite`, `addon-docs`, `addon-a11y`, `addon-vitest`) | Stories for `BaseTemplate`, `ActionForm` and `LocaleSwitcher`; a Vitest project renders each story in Chromium and fails on play-function or axe errors | `.storybook/**`, `src/**/*.stories.tsx`, `vitest.config.ts` | `test:storybook`, `build-storybook` in CI | `2828859` |
+| `semantic-release@25.0.9`, `conventional-changelog-conventionalcommits@10.3.0` | GitHub releases and tags from Conventional Commits after a green CI push on `main`; no npm publish, no changelog commit | `package.json#release`, `.github/workflows/release.yml` | Offline dry run in a temporary clone | `511c9c8` |
+
+Removed in Phase 1 and **still removed**: generated Supabase types (`src/types/Database.ts`, `db:types`; Drizzle infers types from the schema), `dotenv-cli`, PGlite, Neon, Chromatic, the counter demo and `@faker-js/faker`. `npm run build` no longer migrates a database.
+
+Findings while integrating:
+
+- **React Hook Form under the React Compiler.** Errors appeared in `next dev` but never in production builds: the compiler memoized reads of `form.formState` inside callbacks on the stable `form` object. Reading `const { errors } = form.formState` at the top of the component fixes it with the compiler on. Recorded in `AGENTS.md`.
+- **Column grants versus Drizzle inserts.** Drizzle sends `DEFAULT` for omitted columns, so a column-level `INSERT (id, display_name)` grant rejected every insert. The custom migration grants table-level `INSERT` and `UPDATE (display_name)` only; a new pgTAP assertion proves users cannot change `created_at`.
+- **Query parameters in error messages.** Drizzle's `DrizzleQueryError` message embeds the query and its parameters, which would put user input into logs. Callers log `getDatabaseErrorCode(error)` (the SQLSTATE) instead.
+- **SQL injection in the documented RLS wrapper.** The Drizzle Supabase example builds `set_config('request.jwt.claims', …)` with `sql.raw(JSON.stringify(token))`. `withRls()` passes the claims as a bound parameter and hard-codes the role. Mutation check: removing `set local role authenticated` fails all three `test:db` tests.
+- **Privileged connection.** `DATABASE_URL` connects as `postgres`, which bypasses RLS. Only `withRls()` switches to `authenticated`, so `AGENTS.md` forbids direct queries. `DATABASE_URL` is the only server-side secret.
+- **Storybook env loading.** `@storybook/nextjs-vite` evaluates `next.config.ts`, which validates env vars before any `.env` file is loaded. `@next/env`'s `loadEnvConfig` skips `.env.local` when `NODE_ENV=test`, so `.storybook/main.ts` loads `.env` and `.env.local` with Vite's `loadEnv` without overriding set variables. Mutation check: an unlabelled input in a story fails `test:storybook` through the axe gate.
+- **Advisories brought back.** `npm audit` now reports 6 dev-only advisories (1 high, 5 moderate, 0 critical, 0 in production dependencies):
+  - `undici` (high) and `ip-address` (moderate) are bundled inside the `npm` package that `@semantic-release/npm` depends on. They cannot be overridden, and the latest `npm` releases (11.21.1 and 12.2.1) still bundle the affected versions. They run only in the release job.
+  - `esbuild` (moderate, via `@esbuild-kit/*`) is bundled by `drizzle-kit`. The advisory concerns esbuild's dev server, which `drizzle-kit` does not start.
+- **Audit policy.** The single `npm audit --audit-level=high` CI step became two gates: production dependencies fail on high, all dependencies fail on critical. The full report is still printed. `npm audit signatures` verifies 1113 packages.
+- **First release on the fork.** No tags exist locally or on GitHub, so the first semantic-release run would publish `1.0.0` with notes covering all 1,764 inherited upstream commits. A standalone template repository started from a squashed or fresh history avoids that.
 
 ### Remaining appearances of removed vendor names
 
