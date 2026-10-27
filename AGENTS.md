@@ -19,8 +19,9 @@ Engineering rules for humans and AI agents working in this repository. Architect
 npm is the only package manager (`package-lock.json`). Use these scripts:
 - `dev`, `build`, `start`
 - `typecheck`, `lint`, `lint:fix`, `format`, `format:check`, `check:deps`, `check:i18n`
-- `test`, `test:e2e`, `test:rls`
-- `db:start`, `db:stop`, `db:reset`, `db:types`
+- `clean`, `check` (all static checks), `verify` (full local CI-equivalent)
+- `test`, `test:db`, `test:e2e`, `test:rls`
+- `db:start`, `db:stop`, `db:reset`, `db:generate`, `db:migrate`, `check:migrations`
 
 ## Git commits
 Conventional Commits: `type: summary` without scope. The summary is a short, specific sentence that explains what changed and where or why. Types: `feat|fix|docs|style|refactor|perf|test|build|ci|chore|revert`. Add a `BREAKING CHANGE:` footer when needed.
@@ -28,13 +29,15 @@ Conventional Commits: `type: summary` without scope. The summary is a short, spe
 ## Env
 - All env vars are validated in `src/libs/Env.ts`; never read `process.env` directly elsewhere.
 - Document every variable in `.env.example`. Never commit real secrets; `.env*` files other than `.env.example` are git-ignored.
-- Only `NEXT_PUBLIC_*` values may reach the browser. The app does not use the Supabase secret/service-role key; if a feature needs it, keep it in a server-only module and document why.
+- Only `NEXT_PUBLIC_*` values may reach the browser. `DATABASE_URL` is a server-only secret. The app does not use the Supabase secret/service-role key; if a feature needs it, keep it in a server-only module and document why.
 
 ## Supabase and data
-- Schema changes are SQL migrations in `supabase/migrations/`. Never edit an applied migration; add a new one.
-- Every table in an exposed schema needs RLS enabled, explicit `grant`s (new tables are not auto-exposed) and pgTAP tests in `supabase/tests/database/` covering anonymous, owner and cross-user access.
-- Use `(select auth.uid())` in policies. Avoid `security definer` functions; if unavoidable, set `search_path = ''` and keep them narrow.
-- After schema changes: `npm run db:reset`, `npm run test:rls`, `npm run db:types`, and commit `src/types/Database.ts` (generated; never edit by hand).
+- Tables and RLS policies are defined with Drizzle in `src/models/Schema.ts` (`pgPolicy`, `authUid`, `authenticatedRole` from `drizzle-orm/supabase`). `npm run db:generate -- --name=<change>` writes SQL into `supabase/migrations/`; the Supabase CLI applies it (`npm run db:migrate`, or `npm run db:reset` from scratch). Never edit an applied migration; add a new one.
+- Grants, triggers and extensions go in custom migrations (`npm run db:generate -- --custom --name=<change>`). New tables are not auto-exposed: grant explicitly.
+- Every table needs RLS and pgTAP tests in `supabase/tests/database/` covering anonymous, owner and cross-user access.
+- App queries go through `withRls(claims, (tx) => …)` from `@/libs/DB`, which runs them as `authenticated` with the verified claims. Never query the privileged connection directly. Log `getDatabaseErrorCode(error)`, never Drizzle error messages (they embed query parameters).
+- Avoid `security definer` functions; if unavoidable, set `search_path = ''` and keep them narrow.
+- After schema changes: `npm run db:reset`, `npm run test:rls`, `npm run test:db`, and commit the migration plus `supabase/migrations/meta/`.
 
 ## Auth and security
 - Use `getClaims()` (via `requireUserClaims()`) for authorization; never trust `getSession()` on the server.
@@ -76,7 +79,7 @@ Conventional Commits: `type: summary` without scope. The summary is a short, spe
 - Order: description → `@param` → `@returns` → `@throws` (only if it can throw).
 
 ## Tests
-- `*.test.ts(x)` for unit/component tests, co-located with the implementation. `*.e2e.ts` for Playwright tests in `tests/e2e/`. SQL RLS tests in `supabase/tests/database/`.
+- `*.test.ts(x)` for unit/component tests and `*.db.test.ts` for tests against the local database, co-located with the implementation. `*.e2e.ts` for Playwright tests in `tests/e2e/`. SQL RLS tests in `supabase/tests/database/`.
 - Top `describe` = subject; nested `describe` to group scenarios or contexts.
 - `it` titles: short, third-person present, `verb + object + context`. Sentence case, no period.
 - Omit "should/works/handles/checks/validates". State what, not how.

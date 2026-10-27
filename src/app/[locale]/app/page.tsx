@@ -1,7 +1,10 @@
+import { eq } from 'drizzle-orm';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { updateProfile } from '@/actions/ProfileActions';
 import { ActionForm } from '@/components/ActionForm';
-import { createClient, requireUserClaims } from '@/libs/Supabase';
+import { withRls } from '@/libs/DB';
+import { requireUserClaims } from '@/libs/Supabase';
+import { profiles } from '@/models/Schema';
 
 export default async function AppPage(props: { params: Promise<{ locale: string }> }) {
   const { locale } = await props.params;
@@ -10,12 +13,14 @@ export default async function AppPage(props: { params: Promise<{ locale: string 
   const t = await getTranslations({ locale, namespace: 'AppPage' });
   const fields = await getTranslations({ locale, namespace: 'AuthFields' });
 
-  const supabase = await createClient();
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('display_name')
-    .eq('id', claims.sub)
-    .maybeSingle();
+  const [profile] = await withRls(
+    claims,
+    async (tx) =>
+      await tx
+        .select({ displayName: profiles.displayName })
+        .from(profiles)
+        .where(eq(profiles.id, claims.sub)),
+  );
 
   return (
     <>
@@ -34,7 +39,7 @@ export default async function AppPage(props: { params: Promise<{ locale: string 
             type: 'text',
             autoComplete: 'nickname',
             error: fields('display_name_error'),
-            defaultValue: profile?.display_name ?? '',
+            defaultValue: profile?.displayName ?? '',
             maxLength: 50,
           },
         ]}

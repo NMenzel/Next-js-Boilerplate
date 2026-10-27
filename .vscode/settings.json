@@ -3,7 +3,7 @@
   "editor.detectIndentation": false,
   "search.exclude": {
     "package-lock.json": true,
-    "src/types/Database.ts": true
+    "supabase/migrations/meta": true
   },
 
   // TypeScript

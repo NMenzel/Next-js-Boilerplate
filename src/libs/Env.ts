@@ -3,6 +3,8 @@ import * as z from 'zod';
 
 export const Env = createEnv({
   server: {
+    // Postgres connection for Drizzle (server-only secret). Queries run through `withRls()`.
+    DATABASE_URL: z.url(),
     // Build-time only: Sentry source map upload
     SENTRY_ORG: z.string().optional(),
     SENTRY_PROJECT: z.string().optional(),
@@ -28,6 +30,7 @@ export const Env = createEnv({
     NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY,
     NEXT_PUBLIC_LOGGING_LEVEL: process.env.NEXT_PUBLIC_LOGGING_LEVEL,
     NEXT_PUBLIC_SENTRY_DSN: process.env.NEXT_PUBLIC_SENTRY_DSN,
+    DATABASE_URL: process.env.DATABASE_URL,
     SENTRY_ORG: process.env.SENTRY_ORG,
     SENTRY_PROJECT: process.env.SENTRY_PROJECT,
     SENTRY_AUTH_TOKEN: process.env.SENTRY_AUTH_TOKEN,

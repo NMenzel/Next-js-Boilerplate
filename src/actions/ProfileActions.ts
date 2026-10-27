@@ -2,8 +2,10 @@
 
 import { getLocale, getTranslations } from 'next-intl/server';
 import type { FormState } from '@/components/ActionForm';
+import { getDatabaseErrorCode, withRls } from '@/libs/DB';
 import { logger } from '@/libs/Logger';
-import { createClient, requireUserClaims } from '@/libs/Supabase';
+import { requireUserClaims } from '@/libs/Supabase';
+import { profiles } from '@/models/Schema';
 import { getFormString, getInvalidFields } from '@/utils/Helpers';
 import { ProfileValidation } from '@/validations/AuthValidation';
 
@@ -17,22 +19,30 @@ export const updateProfile = async (_state: FormState, formData: FormData): Prom
 
   const claims = await requireUserClaims(await getLocale());
   const t = await getTranslations('Form');
-  const supabase = await createClient();
+  const displayName = parsed.data.display_name;
 
   // RLS only lets users write the row whose id matches their own auth.uid().
-  const { error } = await supabase
-    .from('profiles')
-    .upsert({ id: claims.sub, display_name: parsed.data.display_name });
+  const saved = await withRls(claims, async (tx) => {
+    await tx
+      .insert(profiles)
+      .values({ id: claims.sub, displayName })
+      .onConflictDoUpdate({ target: profiles.id, set: { displayName } });
+  }).then(
+    () => true,
+    (error: unknown) => {
+      logger.error('Profile update failed', { code: getDatabaseErrorCode(error) });
 
-  if (error) {
-    logger.error('Profile update failed', { code: error.code });
+      return false;
+    },
+  );
 
+  if (!saved) {
     return { status: 'error', message: t('error_generic'), values };
   }
 
   return {
     status: 'success',
     message: t('success_profile_saved'),
-    values: { display_name: parsed.data.display_name },
+    values: { display_name: displayName },
   };
 };

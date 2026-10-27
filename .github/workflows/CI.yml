@@ -104,10 +104,13 @@ jobs:
       - name: RLS tests
         run: npm run test:rls
 
-      - name: Generated database types are current
+      - name: Drizzle queries respect RLS
+        run: npm run test:db
+
+      - name: Drizzle schema and migrations are in sync
         run: |
-          npm run db:types
-          git diff --exit-code src/types/Database.ts
+          npx drizzle-kit generate
+          test -z "$(git status --porcelain supabase/migrations)"
 
       - name: Install Playwright browsers
         run: npx playwright install --with-deps chromium firefox

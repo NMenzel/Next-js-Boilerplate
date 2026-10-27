@@ -4,7 +4,7 @@ import ultracite from 'ultracite/oxfmt';
 export default defineConfig({
   extends: [ultracite],
   singleQuote: true,
-  ignorePatterns: ['migrations/*', '*.md'],
+  ignorePatterns: ['supabase/migrations/**', '*.md'],
   sortImports: {
     ignoreCase: true,
     newlinesBetween: false,

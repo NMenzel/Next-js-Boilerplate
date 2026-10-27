@@ -3,7 +3,7 @@ begin;
 
 create extension if not exists pgtap with schema extensions;
 
-select plan(14);
+select plan(15);
 
 insert into auth.users (id, email, aud, role)
 values
@@ -70,6 +70,12 @@ select throws_ok(
   $$ update public.profiles set id = '33333333-3333-4333-8333-333333333333' where id = '11111111-1111-4111-8111-111111111111' $$,
   '42501', null,
   'Users cannot reassign their profile to another user'
+);
+
+select throws_ok(
+  $$ update public.profiles set created_at = now() - interval '1 year' where id = '11111111-1111-4111-8111-111111111111' $$,
+  '42501', null,
+  'Users cannot change server-managed columns'
 );
 
 select throws_ok(
