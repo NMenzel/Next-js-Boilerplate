@@ -44,7 +44,7 @@ Conventional Commits: `type: summary` without scope. The summary is a short, spe
 - Use `getClaims()` (via `requireUserClaims()`) for authorization; never trust `getSession()` on the server.
 - Check the user in every protected page **and** every Server Action/Route Handler. The proxy only refreshes sessions; hiding UI is not authorization. RLS is the final guard.
 - Validate all request input with Zod at the boundary (Server Actions, Route Handlers).
-- Redirect targets from user input go through `getSafeRedirectPath()`.
+- Never redirect to a URL or path taken from user input; choose redirect targets on the server (see `confirmEmailLink`).
 - Do not reveal whether an account exists in auth error messages.
 - Log error codes and IDs, never passwords, tokens, cookies, emails or request bodies.
 

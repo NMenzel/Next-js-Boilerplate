@@ -22,7 +22,7 @@ The upstream boilerplate advertised PostHog and other services without a real pr
 2. Production launch tasks owned by the child project:
    - a hosted Supabase project (region, plan, auth settings, signing keys, redirect URLs, SMTP, CAPTCHA, rate limits, `auto_expose_new_tables` disabled, migrations applied via CI or `supabase db push`);
    - environment variables per environment (`.env.example` lists them) and secret management;
-   - production email delivery and templates;
+   - production email delivery, plus the confirmation and recovery templates from `supabase/templates/` (the app's email links depend on them);
    - backups and restore drills for the database **and Storage objects**;
    - quotas/cost alerts, uptime and error monitoring, incident response;
    - security headers review and a nonce-based CSP.

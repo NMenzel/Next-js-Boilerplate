@@ -22,12 +22,12 @@ Status of the reusable Next.js + Supabase starter after the cleanup of the `ixar
 | i18n | next-intl, i18n-check | `fr` → `es`; Crowdin → checked-in dictionaries | Crowdin config and workflows |
 | UI/a11y | Tailwind utilities, Storybook (now with axe-gated story tests) | Auto-navigating select → language links | |
 | Observability | LogTape (console, redacted), Sentry (opt-in) | | Better Stack sink, Spotlight, Session Replay, Sentry tunnel |
-| Security | | Arcjet → documented expectations, security headers, redirect validation | Arcjet |
+| Security | | Arcjet → documented expectations, security headers, server-chosen redirect targets | Arcjet |
 | Tooling | Oxlint/Oxfmt/Ultracite, Knip, Lefthook (now check-only), commitlint, Vitest, Playwright, Dependabot, npm-run-all (`check`, `verify`), rimraf (`clean`), semantic-release (GitHub releases only) | CI rewritten without secrets | Chromatic, Codecov, CodeRabbit, Checkly, faker, `@commitlint/prompt-cli` |
 
 Storybook, React Hook Form, Drizzle, semantic-release, npm-run-all and rimraf were removed in Phase 1 and restored at the owner's request. Each now has a consumer and a test or CI step; see [the reintegration log](cleanup-audit.md#owner-requested-reintegration).
 
-**Not built (by design):** no product schema or features, no uploads/buckets/media tables, no queues/workers/cron, no analytics SDK, events, consent UI or session replay, no email templates, no deployment. Future designs are in [ADR-002](decisions/ADR-002-signed-uploads.md) to [ADR-005](decisions/ADR-005-privacy-and-deployment.md), all marked **not implemented**.
+**Not built (by design):** no product schema or features, no uploads/buckets/media tables, no queues/workers/cron, no analytics SDK, events, consent UI or session replay, no branded or localized emails (only the two auth link templates), no deployment. Future designs are in [ADR-002](decisions/ADR-002-signed-uploads.md) to [ADR-005](decisions/ADR-005-privacy-and-deployment.md), all marked **not implemented**.
 
 ## Final dependency set
 
@@ -37,7 +37,7 @@ Storybook, React Hook Form, Drizzle, semantic-release, npm-run-all and rimraf we
 
 ## Verification (2026-10-27, Windows 10, Node 24.13, Docker Desktop)
 
-Run in a fresh clone of the branch at `511c9c8` (`npm ci` + `cp .env.example .env.local`, no other files). The commits after it change only documentation.
+Run in a fresh clone of the branch at `511c9c8` (`npm ci` + `cp .env.example .env.local`, no other files). After the [code review](code-review.md) fixes (`068ff33`…`0f33cc8`), the suite was re-run in the working copy: `npm run verify` passes with 16 unit/component tests, 6 story tests, 15 pgTAP assertions, 3 Drizzle tests and 33 E2E tests, `CI=true npm run test:e2e` passes 66/66, and `npm run build-storybook` passes. The table below shows the fresh-clone run before those fixes.
 
 | Command | Result |
 |---|---|
@@ -68,6 +68,7 @@ Mutation checks (tests fail when the protection is removed):
 | `set local role authenticated` in `withRls()` | All 3 `test:db` tests |
 | Refreshed cookies not forwarded by the proxy | E2E session refresh test |
 | Label of a story input | 3 story tests (axe "Form elements must have labels") |
+| `scope: 'local'` in `signOut()` (set to `global`) | E2E "signs out only the current browser" |
 | Log redaction | Logger unit test |
 | One Spanish key | `check:i18n` |
 
@@ -81,8 +82,9 @@ Mutation checks (tests fail when the protection is removed):
 - Invalid input is rejected in the browser before the Server Action runs (React Hook Form + Zod); the server re-validates.
 - Session survives locale switch (`/app` → `/es/app`) and reloads; an access token expired in the cookie is refreshed by the proxy (new refresh token, future expiry) without sign-out.
 - Profile display name saved and read through Drizzle as `authenticated`, persisted across reloads.
-- Password recovery: link from Mailpit → PKCE callback → `/app/update-password` → new password signs in.
-- `/auth/callback?code=invalid&next=//evil.example` → same-site `/sign-in?error=link_invalid`; unit tests cover `https://`, `//`, `/\`, tab, newline and `javascript:` targets.
+- Password recovery: link from Mailpit, fetched once by a scanner-style GET, then opened in a **second browser** → confirm page → Continue → `/app/update-password` → new password signs in. The verifying POST answers with `Cache-Control: … no-store`.
+- Confirm links with missing parameters or an invalid token → `/sign-in?error=link_invalid` on the app origin; a `next=//evil.example` parameter is ignored (the app has no user-supplied redirects).
+- Signing out in one browser keeps the user's other browser signed in, even after a forced token refresh.
 - pgTAP: anonymous read/insert denied; owner insert/select/update allowed; cross-user insert, read, update, ownership reassignment and delete denied; server-managed columns cannot be changed; check constraint enforced.
 - Drizzle (`test:db`): only the signed-in user's rows are returned; updates to another user's row affect nothing; inserting for another user fails with `42501`.
 
