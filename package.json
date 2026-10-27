@@ -23,7 +23,8 @@
     "db:types": "supabase gen types typescript --local > src/types/Database.ts && oxfmt src/types/Database.ts"
   },
   "dependencies": {
-    "@logtape/logtape": "2.3.1",
+    "@logtape/logtape": "2.4.2",
+    "@logtape/redaction": "2.4.2",
     "@sentry/nextjs": "10.77.1",
     "@supabase/ssr": "0.12.7",
     "@supabase/supabase-js": "2.118.0",

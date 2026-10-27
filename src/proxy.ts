@@ -50,7 +50,7 @@ export default async function proxy(request: NextRequest) {
 
 export const config = {
   // Match all pathnames except for
-  // - … if they start with `/_next`, `/_vercel`, `/monitoring` or `/api`
+  // - … if they start with `/_next`, `/_vercel` or `/api`
   // - … the ones containing a dot (e.g. `favicon.ico`)
-  matcher: '/((?!_next|_vercel|monitoring|api|.*\\..*).*)',
+  matcher: '/((?!_next|_vercel|api|.*\\..*).*)',
 };

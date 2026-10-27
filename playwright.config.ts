@@ -36,8 +36,6 @@ export default defineConfig({
     reuseExistingServer: !process.env.CI,
     gracefulShutdown: { signal: 'SIGTERM', timeout: 2 * 1000 },
     env: {
-      BROWSER_TO_TERMINAL_DISABLED: 'true',
-      NEXT_PUBLIC_SENTRY_DISABLED: 'true',
       NEXT_PUBLIC_APP_URL: baseURL,
       PORT,
     },

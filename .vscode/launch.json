@@ -11,9 +11,6 @@
       "program": "${workspaceFolder}/node_modules/next/dist/bin/next",
       "runtimeArgs": ["--inspect"],
       "skipFiles": ["<node_internals>/**"],
-      "env": {
-        "NEXT_PUBLIC_SENTRY_DISABLED": "true"
-      },
       "serverReadyAction": {
         "action": "debugWithChrome",
         "killOnServerStop": true,
