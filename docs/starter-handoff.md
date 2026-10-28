@@ -72,7 +72,7 @@ Mutation checks (tests fail when the protection is removed):
 | Log redaction | Logger unit test |
 | One Spanish key | `check:i18n` |
 
-**Not verified:** GitHub Actions has not run on GitHub (nothing was pushed), so neither CI nor the release workflow has executed there; every CI step was run locally and the workflows pass actionlint. Hosted Supabase, the Supabase pooler, real email delivery, a live Sentry project and an actual GitHub release were not used.
+**CI:** GitHub Actions run [40669838444](https://github.com/NMenzel/Next-js-Boilerplate/actions/runs/40669838444) on PR #1 (commit `487d4c0`) passed all four jobs: static checks with the audit gates (0 production advisories, 1131 verified signatures), 16 unit/component tests, 6 story tests, the production and Storybook builds, all three migrations applied from scratch, 17/17 pgTAP assertions, 4/4 Drizzle RLS tests, the schema drift check and 70/70 E2E tests (Chromium + Firefox). Job times: static checks 85 s, build 73 s, unit and story tests 81 s, database and E2E 200 s. **Not verified:** the release workflow has not run (it starts after a green CI push to `main`); hosted Supabase, the Supabase pooler, real email delivery and a live Sentry project were not used.
 
 ### Auth, session and RLS evidence
 
@@ -105,7 +105,7 @@ Mutation checks (tests fail when the protection is removed):
 7. Local sign-up has email confirmation off and a raised local sign-in/sign-up rate limit (100 per 5 min) for tests; hosted settings are separate.
 8. Spanish copy has not been reviewed by a native speaker; accessibility has no manual screen reader audit.
 9. `translation-resilience` patches DOM methods to survive browser auto-translation; remove it if it conflicts with a future library.
-10. GitHub Actions runtime (Docker image pulls, Playwright browser installs) is unmeasured until the first run on GitHub.
+10. CI needs npm 11.19 or newer to accept the lockfile; regenerate it with a current npm (`npx npm@latest install --package-lock-only`) if `npm ci` reports missing optional packages.
 
 ## Publish as a standalone template (requires owner approval)
 
