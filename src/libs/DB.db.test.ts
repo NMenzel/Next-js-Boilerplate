@@ -1,3 +1,4 @@
+import { inspect } from 'node:util';
 import { eq } from 'drizzle-orm';
 import { Client } from 'pg';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
@@ -63,5 +64,18 @@ describe(withRls, () => {
     ).catch((error: unknown) => error);
 
     expect(getDatabaseErrorCode(failure)).toBe('42501');
+  });
+
+  it('removes query parameters and claims from query errors', async () => {
+    const failure: unknown = await withRls(
+      { sub: owner },
+      async (tx) =>
+        await tx.insert(profiles).values({ id: crypto.randomUUID(), displayName: 'Private name' }),
+    ).catch((error: unknown) => error);
+    const logged = inspect(failure, { depth: null });
+
+    expect(logged).toContain('42501');
+    expect(logged).not.toContain('Private name');
+    expect(logged).not.toContain(owner);
   });
 });

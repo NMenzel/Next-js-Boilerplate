@@ -19,8 +19,8 @@ export const sentryOptions = {
     databaseQueryData: false,
     stackFrameVariables: false,
   },
-  // Drizzle error messages embed the SQL and its parameters (user input). Unhandled errors reach
-  // Sentry through `onRequestError`, so drop those details before sending.
+  // Drizzle error messages embed the SQL and its parameters (user input). `withRls()` already
+  // replaces them; this is the safety net for privileged queries added outside it.
   beforeSend: (event: ErrorEvent) => {
     for (const exception of event.exception?.values ?? []) {
       if (exception.value?.startsWith('Failed query')) {
