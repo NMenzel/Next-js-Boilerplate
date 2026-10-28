@@ -1,78 +1,110 @@
 {
-  "RootLayout": {
+  "PublicLayout": {
     "home_link": "Home",
-    "about_link": "About",
-    "counter_link": "Counter",
-    "portfolio_link": "Portfolio",
     "sign_in_link": "Sign in",
     "sign_up_link": "Sign up"
   },
   "BaseTemplate": {
-    "description": "Starter code for your Nextjs Boilerplate with Tailwind CSS",
-    "footer_text": "© {year} {name}. Made with <author></author>.",
-    "main_navigation_label": "Main navigation"
+    "description": "A product-neutral Next.js and Supabase starter",
+    "footer_text": "© {year} {name}",
+    "main_navigation_label": "Main navigation",
+    "account_navigation_label": "Account",
+    "skip_link": "Skip to main content"
   },
-  "Index": {
-    "meta_title": "Next.js Boilerplate Presentation",
-    "meta_description": "Next js Boilerplate is the perfect starter code for your project. Build your React application with the Next.js framework.",
-    "sponsors_title": "Sponsors",
-    "zap_emoji_label": "Zap"
+  "IndexPage": {
+    "meta_title": "Next.js starter",
+    "meta_description": "A product-neutral Next.js and Supabase starter.",
+    "heading": "Next.js starter",
+    "intro": "Authentication, localization, testing and CI are ready. Replace this page with your product.",
+    "app_link": "Open the app"
   },
-  "Counter": {
-    "meta_title": "Counter",
-    "meta_description": "An example of DB operation",
-    "security_powered_by": "Security, bot detection and rate limiting powered by"
-  },
-  "CounterForm": {
-    "presentation": "The counter is stored in the database and incremented by the value you provide.",
-    "label_increment": "Increment by",
-    "button_increment": "Increment",
-    "error_increment_range": "Value must be between 1 and 3"
-  },
-  "CurrentCount": {
-    "count": "Count: {count}"
-  },
-  "About": {
-    "meta_title": "About",
-    "meta_description": "About page description",
-    "about_paragraph": "Welcome to our About page! We are a team of passionate individuals dedicated to creating amazing software.",
-    "translation_powered_by": "Translation powered by"
-  },
-  "Portfolio": {
-    "meta_title": "Portfolio",
-    "meta_description": "Welcome to my portfolio page!",
-    "presentation": "Welcome to my portfolio page! Here you will find a carefully curated collection of my work and accomplishments. Through this portfolio, I'm to showcase my expertise, creativity, and the value I can bring to your projects.",
-    "portfolio_name": "Portfolio {name}",
-    "error_reporting_powered_by": "Error reporting powered by"
-  },
-  "PortfolioSlug": {
-    "meta_title": "Portfolio {slug}",
-    "meta_description": "Portfolio {slug} description",
-    "header": "Portfolio {slug}",
-    "content": "Created a set of promotional materials and branding elements for a corporate event. Crafted a visually unified theme, encompassing a logo, posters, banners, and digital assets. Integrated the client's brand identity while infusing it with a contemporary and innovative approach.",
-    "code_review_powered_by": "Code review powered by"
-  },
-  "SignIn": {
+  "SignInPage": {
     "meta_title": "Sign in",
-    "meta_description": "Seamlessly sign in to your account with our user-friendly login process."
+    "meta_description": "Sign in to your account.",
+    "heading": "Sign in",
+    "submit": "Sign in",
+    "forgot_password_link": "Forgot your password?",
+    "sign_up_link": "Create an account"
   },
-  "SignUp": {
+  "SignUpPage": {
     "meta_title": "Sign up",
-    "meta_description": "Effortlessly create an account through our intuitive sign-up process."
+    "meta_description": "Create an account.",
+    "heading": "Create an account",
+    "submit": "Sign up",
+    "sign_in_link": "Already have an account? Sign in"
   },
-  "Dashboard": {
-    "hello_message": "Hello {email}!",
-    "alternative_message": "Need advanced features? Multi-tenancy & Teams, Roles & Permissions, Shadcn UI, End-to-End Typesafety with oRPC, Stripe Payment, Light / Dark mode. Try <url></url>.",
-    "max_message": "Or, need a Self-hosted auth stack (Better Auth)? Try <url></url>."
+  "ForgotPasswordPage": {
+    "meta_title": "Reset password",
+    "meta_description": "Request a password reset link.",
+    "heading": "Reset your password",
+    "intro": "Enter your email and we will send you a reset link.",
+    "submit": "Send reset link",
+    "sign_in_link": "Back to sign in"
   },
-  "DashboardLayout": {
-    "meta_title": "Dashboard",
-    "meta_description": "Manage your account from the dashboard.",
-    "dashboard_link": "Dashboard",
-    "user_profile_link": "Manage your account",
+  "AppLayout": {
+    "meta_title": "App",
+    "meta_description": "Your account.",
+    "app_link": "App",
+    "update_password_link": "Change password",
     "sign_out": "Sign out"
+  },
+  "AppPage": {
+    "heading": "Welcome",
+    "signed_in_as": "Signed in as {email}",
+    "profile_heading": "Profile",
+    "profile_submit": "Save profile"
+  },
+  "UpdatePasswordPage": {
+    "heading": "Change password",
+    "submit": "Update password",
+    "meta_title": "Change password"
+  },
+  "AuthFields": {
+    "email_label": "Email",
+    "email_error": "Enter a valid email address.",
+    "password_label": "Password",
+    "password_required_error": "Enter your password.",
+    "new_password_label": "New password",
+    "new_password_hint": "Use 8 to 72 characters.",
+    "new_password_error": "Use 8 to 72 characters. Accented letters and emoji count as more than one.",
+    "display_name_label": "Display name",
+    "display_name_error": "Use 1 to 50 characters."
+  },
+  "Form": {
+    "error_generic": "Something went wrong.",
+    "error_invalid_credentials": "Invalid email or password.",
+    "error_link_invalid": "The link is invalid or has expired.",
+    "error_rate_limited": "Too many attempts. Wait a moment.",
+    "error_same_password": "Choose a different password.",
+    "error_sign_up_disabled": "Sign-up is not available.",
+    "success_check_email": "Check your email to confirm your account.",
+    "success_password_updated": "Password updated.",
+    "success_profile_saved": "Profile saved.",
+    "success_reset_sent": "If an account exists for this email, a reset link is on its way.",
+    "error_password_characters": "Add the required letters, digits or symbols.",
+    "error_password_pwned": "This password appeared in a data breach. Choose another one.",
+    "error_sign_out_failed": "Sign-out failed. You are still signed in.",
+    "error_email_not_confirmed": "Confirm your email address first.",
+    "error_password_length": "Use a longer password."
   },
   "LocaleSwitcher": {
     "change_language": "Change language"
+  },
+  "NotFoundPage": {
+    "heading": "Page not found",
+    "description": "The page you are looking for does not exist.",
+    "home_link": "Go to the homepage"
+  },
+  "ConfirmPage": {
+    "meta_title": "Continue",
+    "meta_description": "Finish signing in from an email link.",
+    "heading": "Continue from your email",
+    "intro": "Select the button to confirm this link.",
+    "submit": "Continue"
+  },
+  "ErrorPage": {
+    "heading": "Something went wrong",
+    "description": "The page could not be loaded.",
+    "home_link": "Go to the homepage"
   }
 }

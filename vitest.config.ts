@@ -1,3 +1,4 @@
+import { storybookTest } from '@storybook/addon-vitest/vitest-plugin';
 import react from '@vitejs/plugin-react';
 import { playwright } from '@vitest/browser-playwright';
 import { loadEnv } from 'vite';
@@ -9,17 +10,22 @@ export default defineConfig({
     tsconfigPaths: true,
   },
   test: {
-    coverage: {
-      include: ['src/**/*'],
-      exclude: ['src/**/*.stories.{js,jsx,ts,tsx}'],
-    },
     projects: [
       {
         extends: true,
         test: {
           name: 'unit',
           include: ['src/**/*.test.{js,ts}'],
-          exclude: ['src/hooks/**/*.test.ts'],
+          exclude: ['src/hooks/**/*.test.ts', 'src/**/*.db.test.ts'],
+          environment: 'node',
+        },
+      },
+      {
+        // Needs the local Supabase database (`npm run db:start`); run with `npm run test:db`.
+        extends: true,
+        test: {
+          name: 'db',
+          include: ['src/**/*.db.test.ts'],
           environment: 'node',
         },
       },
@@ -35,6 +41,20 @@ export default defineConfig({
             screenshotDirectory: 'vitest-test-results',
             instances: [{ browser: 'chromium' }],
           },
+        },
+      },
+      {
+        // Renders every story in Chromium and fails on play-function or axe errors.
+        plugins: [storybookTest({ configDir: '.storybook' })],
+        test: {
+          name: 'storybook',
+          browser: {
+            enabled: true,
+            headless: true,
+            provider: playwright(),
+            instances: [{ browser: 'chromium' }],
+          },
+          setupFiles: ['.storybook/vitest.setup.ts'],
         },
       },
     ],

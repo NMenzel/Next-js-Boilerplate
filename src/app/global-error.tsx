@@ -1,11 +1,13 @@
 'use client';
 
 import * as Sentry from '@sentry/nextjs';
-import NextError from 'next/error';
 import { useEffect } from 'react';
 import { routing } from '@/libs/I18nRouting';
+import messages from '@/locales/en.json';
 
-export default function GlobalError(props: { error: Error & { digest?: string } }) {
+// Replaces the locale layout when that layout fails, so no locale or translation provider exists:
+// render the default locale's messages. Other errors use the localized `[locale]/error.tsx`.
+export default function GlobalError(props: { error: unknown }) {
   useEffect(() => {
     Sentry.captureException(props.error);
   }, [props.error]);
@@ -13,11 +15,14 @@ export default function GlobalError(props: { error: Error & { digest?: string } 
   return (
     <html lang={routing.defaultLocale}>
       <body>
-        {/* `NextError` is the default Next.js error page component. Its type
-        definition requires a `statusCode` prop. However, since the App Router
-        does not expose status codes for errors, we simply pass 0 to render a
-        generic error message. */}
-        <NextError statusCode={0} />
+        <main>
+          <title>{messages.ErrorPage.heading}</title>
+          <h1>{messages.ErrorPage.heading}</h1>
+          <p>{messages.ErrorPage.description}</p>
+          {/* A full page load: the client router may be broken. */}
+          {/* oxlint-disable-next-line nextjs/no-html-link-for-pages */}
+          <a href="/">{messages.ErrorPage.home_link}</a>
+        </main>
       </body>
     </html>
   );

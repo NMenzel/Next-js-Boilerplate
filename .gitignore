@@ -13,6 +13,7 @@
 # testing
 /coverage
 /vitest-test-results
+/.vitest-attachments
 
 # next.js
 /.next/
@@ -32,8 +33,9 @@ yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
-# local env files
-.env*.local
+# env files (only the example is tracked)
+.env*
+!.env.example
 
 # Sentry Config File
 .env.sentry-build-plugin
@@ -54,7 +56,6 @@ next-env.d.ts
 # storybook
 storybook-static
 *storybook.log
-build-archive.log
 
 # playwright
 /test-results/

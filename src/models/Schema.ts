@@ -1,24 +1,40 @@
-import { integer, pgTable, serial, timestamp } from 'drizzle-orm/pg-core';
+import { sql } from 'drizzle-orm';
+import { check, pgPolicy, pgTable, text, timestamp, uuid } from 'drizzle-orm/pg-core';
+import { authenticatedRole, authUid, authUsers } from 'drizzle-orm/supabase';
 
-// This file defines the structure of your database tables using the Drizzle ORM.
+// Source of truth for tables and RLS policies. After editing, run `npm run db:generate -- --name=<change>`
+// to write a migration into `supabase/migrations`, then apply it with `npm run db:migrate`.
+// Grants, triggers and extensions that Drizzle cannot express go into custom migrations
+// (`npm run db:generate -- --custom --name=<change>`).
 
-// To modify the database schema:
-// 1. Update this file with your desired changes.
-// 2. Generate a new migration by running: `npm run db:generate`
-
-// The generated migration file will reflect your schema changes.
-// It automatically run the command `db-server:file`, which apply the migration before Next.js starts in development mode,
-// Alternatively, if your database is running, you can run `npm run db:migrate` and there is no need to restart the server.
-
-// Need a database for production? Check out https://get.neon.com/BMFYNtx
-// Tested and compatible with Next.js Boilerplate
-
-export const counterSchema = pgTable('counter', {
-  id: serial('id').primaryKey(),
-  count: integer('count').default(0),
-  updatedAt: timestamp('updated_at', { mode: 'date' })
-    .defaultNow()
-    .$onUpdate(() => new Date())
-    .notNull(),
-  createdAt: timestamp('created_at', { mode: 'date' }).defaultNow().notNull(),
-});
+/** Minimal user-owned record that demonstrates Supabase Auth + RLS. Replace with your product schema. */
+export const profiles = pgTable(
+  'profiles',
+  {
+    id: uuid('id')
+      .primaryKey()
+      .references(() => authUsers.id, { onDelete: 'cascade' }),
+    displayName: text('display_name'),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    check('profiles_display_name_check', sql`char_length(${table.displayName}) between 1 and 50`),
+    pgPolicy('Owners can read their profile', {
+      for: 'select',
+      to: authenticatedRole,
+      using: sql`${table.id} = ${authUid}`,
+    }),
+    pgPolicy('Owners can create their profile', {
+      for: 'insert',
+      to: authenticatedRole,
+      withCheck: sql`${table.id} = ${authUid}`,
+    }),
+    pgPolicy('Owners can update their profile', {
+      for: 'update',
+      to: authenticatedRole,
+      using: sql`${table.id} = ${authUid}`,
+      withCheck: sql`${table.id} = ${authUid}`,
+    }),
+  ],
+).enableRLS();

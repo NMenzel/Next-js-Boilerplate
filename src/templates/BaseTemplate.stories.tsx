@@ -1,45 +1,26 @@
 import type { Meta, StoryObj } from '@storybook/nextjs-vite';
-import { NextIntlClientProvider } from 'next-intl';
-import messages from '@/locales/en.json';
 import { BaseTemplate } from './BaseTemplate';
 
 const meta = {
-  title: 'Example/BaseTemplate',
+  title: 'Templates/BaseTemplate',
   component: BaseTemplate,
   parameters: {
     layout: 'fullscreen',
-    nextjs: {
-      // WORKAROUND: incompatibility issue between Storybook 10.5.8 and Next.js 16.4
-      appDirectory: false,
-    },
   },
-  decorators: [
-    (Story) => (
-      <NextIntlClientProvider locale="en" messages={messages}>
-        <Story />
-      </NextIntlClientProvider>
-    ),
-  ],
 } satisfies Meta<typeof BaseTemplate>;
 
 export default meta;
 type Story = StoryObj<typeof meta>;
 
-export const BaseWithReactComponent: Story = {
+export const WithNavigation: Story = {
   args: {
-    children: <div>Children node</div>,
     leftNav: (
       <>
-        <li>Link 1</li>
-        <li>Link 2</li>
+        <li>Home</li>
+        <li>About</li>
       </>
     ),
-  },
-};
-
-export const BaseWithString: Story = {
-  args: {
-    ...BaseWithReactComponent.args,
-    children: 'String',
+    rightNav: <li>Sign in</li>,
+    children: <h1 className="text-2xl font-bold">Page heading</h1>,
   },
 };

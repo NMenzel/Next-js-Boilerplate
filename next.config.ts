@@ -1,71 +1,59 @@
-import './src/libs/Env';
-import { withSentryConfig } from '@sentry/nextjs';
+import { withSentryConfig } from '@sentry/nextjs/config';
 import type { NextConfig } from 'next';
 import createNextIntlPlugin from 'next-intl/plugin';
+import { Env } from './src/libs/Env';
 
-// Define the base Next.js configuration
+const securityHeaders = [
+  { key: 'X-Content-Type-Options', value: 'nosniff' },
+  { key: 'X-Frame-Options', value: 'DENY' },
+  { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
+  { key: 'Permissions-Policy', value: 'camera=(), microphone=(), geolocation=()' },
+  { key: 'Strict-Transport-Security', value: 'max-age=63072000' },
+  // Only directives that cannot break Next.js or Supabase. A script/style CSP needs per-request
+  // nonces (which forces dynamic rendering) and is deferred; see docs/architecture.md.
+  {
+    key: 'Content-Security-Policy',
+    value: "base-uri 'self'; form-action 'self'; frame-ancestors 'none'; object-src 'none'",
+  },
+];
+
 const baseConfig: NextConfig = {
+  // Keep AGENTS.md hand-maintained; `next dev` would otherwise inject a managed block for AI agents.
+  agentRules: false,
   devIndicators: {
     position: 'bottom-right',
   },
   poweredByHeader: false,
   reactStrictMode: true,
-  reactCompiler: process.env.NODE_ENV === 'production', // Keep the development environment fast
+  // React Compiler runs in production builds only to keep `next dev` fast; E2E tests use the compiled build.
+  reactCompiler: Env.NODE_ENV === 'production',
   experimental: {
     // Clean up unused compilation work from memory and disk caches.
     turbopackGc: true,
     // Use the Rust version, instead of the OG Babel one
-    turbopackRustReactCompiler: process.env.NODE_ENV === 'production',
+    turbopackRustReactCompiler: Env.NODE_ENV === 'production',
   },
   logging: {
-    browserToTerminal: process.env.BROWSER_TO_TERMINAL_DISABLED !== 'true',
+    browserToTerminal: true,
   },
-  outputFileTracingIncludes: {
-    '/': ['./migrations/**/*'],
-  },
+  // oxlint-disable-next-line require-await -- Next.js expects headers() to return a Promise
+  headers: async () => [{ source: '/:path*', headers: securityHeaders }],
 };
 
-// Initialize the Next-Intl plugin
-let configWithPlugins = createNextIntlPlugin('./src/libs/I18n.ts')(baseConfig);
+const configWithIntl = createNextIntlPlugin('./src/libs/I18n.ts')(baseConfig);
 
-// Conditionally enable Sentry configuration
-if (!process.env.NEXT_PUBLIC_SENTRY_DISABLED) {
-  configWithPlugins = withSentryConfig(configWithPlugins, {
-    // For all available options, see:
-    // https://www.npmjs.com/package/@sentry/webpack-plugin#options
-    org: process.env.SENTRY_ORGANIZATION,
-    project: process.env.SENTRY_PROJECT,
+// Sentry is optional: the build plugin is only added when a DSN is configured, and source maps
+// are only generated and uploaded (then deleted from the build output) when an auth token exists.
+const nextConfig = Env.NEXT_PUBLIC_SENTRY_DSN
+  ? withSentryConfig(configWithIntl, {
+      org: Env.SENTRY_ORG,
+      project: Env.SENTRY_PROJECT,
+      authToken: Env.SENTRY_AUTH_TOKEN,
+      sourcemaps: { disable: !Env.SENTRY_AUTH_TOKEN },
+      silent: !Env.CI,
+      widenClientFileUpload: true,
+      telemetry: false,
+    })
+  : configWithIntl;
 
-    // Only print logs for uploading source maps in CI
-    silent: !process.env.CI,
-
-    // For all available options, see:
-    // https://docs.sentry.io/platforms/javascript/guides/nextjs/manual-setup/
-
-    // Upload a larger set of source maps for prettier stack traces (increases build time)
-    widenClientFileUpload: true,
-
-    // Route browser requests to Sentry through a Next.js rewrite to circumvent ad-blockers.
-    // This can increase your server load as well as your hosting bill.
-    // Note: Check that the configured route will not match with your Next.js middleware, otherwise reporting of client-
-    // side errors will fail.
-    tunnelRoute: '/monitoring',
-
-    webpack: {
-      reactComponentAnnotation: {
-        enabled: true,
-      },
-
-      // Tree-shake Sentry logger statements to reduce bundle size
-      treeshake: {
-        removeDebugLogging: true,
-      },
-    },
-
-    // Disable Sentry telemetry
-    telemetry: false,
-  });
-}
-
-const nextConfig = configWithPlugins;
 export default nextConfig;

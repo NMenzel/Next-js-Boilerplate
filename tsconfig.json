@@ -53,8 +53,7 @@
     // Configure import paths and module resolution
     // ======================================================================
     "paths": {
-      "@/*": ["./src/*"],
-      "@/public/*": ["./public/*"]
+      "@/*": ["./src/*"]
     },
     // ======================================================================
     // Next.js Project Configuration
@@ -76,6 +75,7 @@
     "**/*.ts",
     "**/*.tsx",
     ".storybook/**/*.ts",
+    ".storybook/**/*.tsx",
     ".next/types/**/*.ts",
     ".next/dev/types/**/*.ts"
   ]

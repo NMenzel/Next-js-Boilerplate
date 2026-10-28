@@ -1,72 +1,58 @@
-import { detectBot } from '@arcjet/next';
-import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server';
+import type { SetAllCookies } from '@supabase/ssr';
+import { createServerClient } from '@supabase/ssr';
 import createMiddleware from 'next-intl/middleware';
-import type { NextFetchEvent, NextRequest } from 'next/server';
-import { NextResponse } from 'next/server';
-import arcjet from '@/libs/Arcjet';
-import { routing } from './libs/I18nRouting';
+import type { NextRequest } from 'next/server';
+import { Env } from '@/libs/Env';
+import { routing } from '@/libs/I18nRouting';
+import { supabaseCookieOptions } from '@/libs/SupabaseCookies';
 
 const handleI18nRouting = createMiddleware(routing);
 
-const isProtectedRoute = createRouteMatcher(['/dashboard(.*)', '/:locale/dashboard(.*)']);
+export default async function proxy(request: NextRequest) {
+  let refreshedCookies: Parameters<SetAllCookies>[0] = [];
+  let cacheHeaders: Parameters<SetAllCookies>[1] = {};
 
-const isAuthPage = createRouteMatcher([
-  '/sign-in(.*)',
-  '/:locale/sign-in(.*)',
-  '/sign-up(.*)',
-  '/:locale/sign-up(.*)',
-]);
+  const supabase = createServerClient(
+    Env.NEXT_PUBLIC_SUPABASE_URL,
+    Env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY,
+    {
+      cookieOptions: supabaseCookieOptions,
+      cookies: {
+        getAll: () => request.cookies.getAll(),
+        setAll: (cookiesToSet, headers) => {
+          for (const { name, value } of cookiesToSet) {
+            request.cookies.set(name, value);
+          }
 
-// Improve security with Arcjet
-const aj = arcjet.withRule(
-  detectBot({
-    mode: 'LIVE',
-    // Block all bots except the following
-    allow: [
-      // See https://docs.arcjet.com/bot-protection/identifying-bots
-      'CATEGORY:SEARCH_ENGINE', // Allow search engines
-      'CATEGORY:PREVIEW', // Allow preview links to show OG images
-      'CATEGORY:MONITOR', // Allow uptime monitoring services
-    ],
-  }),
-);
+          refreshedCookies = cookiesToSet;
+          cacheHeaders = headers;
+        },
+      },
+    },
+  );
 
-export default async function proxy(request: NextRequest, event: NextFetchEvent) {
-  // Verify the request with Arcjet
-  // Use `process.env` instead of Env to reduce bundle size in middleware
-  if (process.env.ARCJET_KEY) {
-    const decision = await aj.protect(request);
+  // Refreshes an expired session. Keep this call directly after creating the client.
+  // Authorization happens in pages, actions and RLS, not here.
+  await supabase.auth.getClaims();
 
-    if (decision.isDenied()) {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
-    }
+  // next-intl forwards the request headers, so Server Components see the refreshed cookies.
+  const response = handleI18nRouting(request);
+
+  for (const { name, value, options } of refreshedCookies) {
+    response.cookies.set(name, value, options);
   }
 
-  // Clerk keyless mode doesn't work with i18n, this is why we need to run the middleware conditionally
-  if (isAuthPage(request) || isProtectedRoute(request)) {
-    // Match Clerk's documented middleware composition pattern, `return await` is not necessary.
-    // oxlint-disable-next-line typescript/return-await
-    return clerkMiddleware(async (auth, req) => {
-      if (isProtectedRoute(req)) {
-        const locale = req.nextUrl.pathname.match(/(\/.*)\/dashboard/u)?.at(1) ?? '';
-
-        const signInUrl = new URL(`${locale}/sign-in`, req.url);
-
-        await auth.protect({
-          unauthenticatedUrl: signInUrl.toString(),
-        });
-      }
-
-      return handleI18nRouting(req);
-    })(request, event);
+  // Prevents CDNs from caching responses that carry session cookies.
+  for (const [key, value] of Object.entries(cacheHeaders)) {
+    response.headers.set(key, value);
   }
 
-  return handleI18nRouting(request);
+  return response;
 }
 
 export const config = {
   // Match all pathnames except for
-  // - … if they start with `/_next`, `/_vercel` or `monitoring`
+  // - … if they start with `/_next`, `/_vercel` or `/api`
   // - … the ones containing a dot (e.g. `favicon.ico`)
-  matcher: '/((?!_next|_vercel|monitoring|api|.*\\..*).*)',
+  matcher: '/((?!_next|_vercel|api|.*\\..*).*)',
 };
