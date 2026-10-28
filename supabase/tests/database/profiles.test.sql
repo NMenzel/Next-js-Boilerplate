@@ -3,7 +3,7 @@ begin;
 
 create extension if not exists pgtap with schema extensions;
 
-select plan(15);
+select plan(17);
 
 insert into auth.users (id, email, aud, role)
 values
@@ -108,6 +108,20 @@ select results_eq(
   $$ select display_name from public.profiles $$,
   $$ values ('Other'::text) $$,
   'Cross-user update attempt left the other profile unchanged'
+);
+
+-- Third user tries to backdate a new profile
+set local request.jwt.claims = '{"sub":"33333333-3333-4333-8333-333333333333","role":"authenticated"}';
+
+select lives_ok(
+  $$ insert into public.profiles (id, display_name, created_at, updated_at) values ('33333333-3333-4333-8333-333333333333', 'Third', '2000-01-01', '2000-01-01') $$,
+  'Users can create a profile that names the timestamp columns'
+);
+
+select results_eq(
+  $$ select created_at, updated_at from public.profiles $$,
+  $$ values (now(), now()) $$,
+  'The server sets the timestamps of a new profile'
 );
 
 select * from finish();

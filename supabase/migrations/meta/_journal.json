@@ -15,6 +15,13 @@
       "when": 1793123991836,
       "tag": "20261027175951_profiles_grants_and_timestamps",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1793138282855,
+      "tag": "20261027215802_profiles_insert_timestamps",
+      "breakpoints": true
     }
   ]
 }
