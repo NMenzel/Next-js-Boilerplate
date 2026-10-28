@@ -27,6 +27,7 @@ src/
     (public)/                 Home, sign-in, sign-up, forgot-password, email link confirm page (public shell)
     app/                      Protected area: profile, change password (app shell)
     not-found.tsx, [...rest]  Localized 404
+    error.tsx                 Localized error page (global-error.tsx covers a failed locale layout)
   components/                 ActionForm (React Hook Form + Server Action), LocaleSwitcher, their stories
   libs/                       Env, DB (Drizzle + withRls), Supabase auth clients, Logger, Sentry options, i18n
   locales/                    en.json, es.json
@@ -54,9 +55,10 @@ The proxy does not authorize anything. Authorization lives in pages, actions and
 ## Authentication
 
 - Identity checks use `getClaims()` (verifies the JWT signature, locally when the project uses asymmetric signing keys). `getSession()` is never trusted on the server.
+- Session cookies are `HttpOnly` (no script can read them; the app has no browser Supabase client) and `Secure` when `NEXT_PUBLIC_APP_URL` uses HTTPS (`src/libs/SupabaseCookies.ts`, used by the proxy and the server client).
 - Sign-up returns a session immediately when email confirmations are off (the local default) and shows "check your email" when they are on.
 - Email links (confirmation, password recovery) open `/[locale]/auth/confirm?token_hash=…&type=…` (templates in `supabase/templates/`). The page only renders a "Continue" button; `confirmEmailLink` verifies the token with `verifyOtp` when it is submitted. Links therefore work in any browser or device, and email scanners that open links do not use them up. The destination depends only on `type` (`recovery` → change password, `email` → app); the app never redirects to a user-supplied target.
-- Hosted projects must use the same two templates (*Authentication → Emails*). The default Supabase templates send PKCE links, which the confirm page rejects as invalid.
+- Hosted projects must use the same two templates (*Authentication → Emails*). The default Supabase templates send PKCE links, which the confirm page rejects as invalid. The templates use `{{ .RedirectTo }}`, the confirm page URL sent by the Server Action; Supabase replaces it with the Site URL when that URL is not on the redirect allow-list, and the link then opens the home page without verifying anything. Set the Site URL to `NEXT_PUBLIC_APP_URL` and add `<NEXT_PUBLIC_APP_URL>/**` to the additional redirect URLs (it covers `/es/auth/confirm`).
 - Sign-out ends only the current browser's session (`scope: 'local'`). If Supabase cannot be reached, the user stays signed in and sees an error instead of a false success.
 - Passwords are limited to 72 **bytes** (bcrypt), checked in the shared Zod schema; accented letters and emoji count as several bytes.
 - Error messages do not reveal whether an account exists (sign-in errors are generic; password reset always reports success).
@@ -68,7 +70,7 @@ Local `supabase/config.toml` enables public email sign-up with confirmations **o
 - whether public sign-up is allowed at all (`Allow new users to sign up`), or invite/admin-only;
 - email confirmation, a real SMTP provider and branded templates;
 - CAPTCHA (hCaptcha/Turnstile) and Auth rate limits;
-- permitted providers and redirect URL allow-list (`Site URL`, additional redirect URLs).
+- permitted providers and redirect URL allow-list (`Site URL`, additional redirect URLs, including `<NEXT_PUBLIC_APP_URL>/**` for the email links).
 
 Hiding the sign-up link does not prevent sign-ups through the Auth API. If a product disables sign-up in Supabase, the sign-up form shows "Sign-up is not available" for the `signup_disabled` error.
 
@@ -76,10 +78,10 @@ Hiding the sign-up link does not prevent sign-ups through the Auth API. If a pro
 
 - **Schema source:** `src/models/Schema.ts` (Drizzle) defines tables, constraints and RLS policies with `drizzle-orm/supabase` (`authenticatedRole`, `authUid`, `authUsers`). `npm run db:generate` writes timestamped SQL into `supabase/migrations/` (`migrations.prefix: 'supabase'`). The Supabase CLI applies it (`npm run db:migrate`, `npm run db:reset`) and stays the only migration tracker. Extensions, triggers, comments and grants live in custom migrations.
 - `supabase/config.toml` sets `auto_expose_new_tables = false`: new tables are not reachable through the Data API until a migration grants access. Configure the same expectation for hosted projects.
-- `public.profiles` is the only table: one row per auth user, `display_name`, timestamps (`moddatetime` trigger). Anonymous users have no privileges. Signed-in users can select and insert only their own row (`id = auth.uid()`) and can update only `display_name`; there is no DELETE grant (rows cascade with the auth user). INSERT is granted at table level because Drizzle lists every column (using `DEFAULT` for timestamps).
-- **Privileged connection:** `DATABASE_URL` connects as a role that bypasses RLS. `withRls()` is the only exported query entry point. It binds the claims as query parameters (never string interpolation, since claims can include user metadata) and uses `set local`, so the role and claims end with the transaction. Hardening option for products: connect with a dedicated login role that has no table privileges and is only granted `authenticated`.
-- **Tests:** `supabase/tests/database/profiles.test.sql` (pgTAP, 15 assertions) covers anonymous, owner and cross-user allow/deny cases; `src/libs/DB.db.test.ts` proves `withRls()` enforces the same policies. CI fails if `drizzle-kit generate` would create a new migration, i.e. if schema and migrations drift.
-- **Error logging:** Drizzle error messages embed query parameters. Log `getDatabaseErrorCode(error)` (SQLSTATE) only.
+- `public.profiles` is the only table: one row per auth user, `display_name`, timestamps (`moddatetime` trigger). Anonymous users have no privileges. Signed-in users can select and insert only their own row (`id = auth.uid()`) and can update only `display_name`; there is no DELETE grant (rows cascade with the auth user). INSERT is granted at table level because Drizzle lists every column (using `DEFAULT` for timestamps); a `BEFORE INSERT` trigger sets both timestamps, so clients cannot backdate a profile.
+- **Privileged connection:** `DATABASE_URL` connects as a role that bypasses RLS. `withRls()` is the only exported query entry point. It binds the claims as query parameters (never string interpolation, since claims can include user metadata) and sets the claims and the `authenticated` role with transaction-local `set_config` in one statement, so both end with the transaction. Hardening option for products: connect with a dedicated login role that has no table privileges and is only granted `authenticated`.
+- **Tests:** `supabase/tests/database/profiles.test.sql` (pgTAP, 17 assertions) covers anonymous, owner and cross-user allow/deny cases; `src/libs/DB.db.test.ts` proves `withRls()` enforces the same policies. CI fails if `drizzle-kit generate` would create a new migration, i.e. if schema and migrations drift.
+- **Error logging:** Drizzle error messages embed the SQL, its parameters (for `withRls()`, the claims with the email) and the failing row. `withRls()` rethrows query errors as `Database query failed (<SQLSTATE>)` with only a `code`, so Next.js error logs and Sentry never see them. Log `getDatabaseErrorCode(error)` only.
 
 ## Forms
 
@@ -87,7 +89,7 @@ Hiding the sign-up link does not prevent sign-ups through the Auth API. If a pro
 
 ## Internationalization and accessibility
 
-- Locales come from `src/utils/AppConfig.ts`; `[locale]/layout.tsx` sets `<html lang>`. Unknown paths render a localized 404.
+- Locales come from `src/utils/AppConfig.ts`; `[locale]/layout.tsx` sets `<html lang>`. Unknown paths render a localized 404, and render errors a localized error page (`[locale]/error.tsx`); `global-error.tsx` (default-locale text) only replaces a failed locale layout.
 - All user-visible strings live in `src/locales/*.json`. `npm run check:i18n` fails on missing, unused or undefined keys; Server Actions return translated messages so every key is statically visible.
 - The shell provides a skip link, labelled `nav` landmarks, a single `h1` per page and a global `:focus-visible` outline. Forms use visible labels, `aria-invalid`, `aria-describedby` for hints and errors, and `role="alert"`/`role="status"` for results. Language switching uses links (not an auto-navigating select) with `lang`/`hrefLang`.
 - Storybook story tests fail on axe violations; Playwright runs axe (WCAG 2.0–2.2 A/AA rules) on public pages in both locales and on the signed-in page. Automated checks do not replace manual screen reader testing.
@@ -101,7 +103,7 @@ Caveat found with React Hook Form: `useForm()` returns a stable, mutated object,
 ## Observability
 
 - `src/libs/Logger.ts`: JSON lines on stdout, no remote sink. `@logtape/redaction` removes fields that look like passwords, tokens, keys, auth data, emails, phones or addresses. Log error codes, never request payloads or query parameters.
-- Sentry: initialized only when `NEXT_PUBLIC_SENTRY_DSN` is set. Cookies, headers, bodies, URL query parameters, user info, DB query data and stack-frame variables are not collected; no Session Replay; 10% trace sampling. `beforeSend` replaces Drizzle "Failed query" messages, which embed SQL parameters. Source maps are generated, uploaded and deleted only when `SENTRY_AUTH_TOKEN` is present.
+- Sentry: initialized only when `NEXT_PUBLIC_SENTRY_DSN` is set. Cookies, headers, bodies, URL query parameters, user info, DB query data and stack-frame variables are not collected; no Session Replay; 10% trace sampling. `withRls()` removes query details from errors; `beforeSend` also replaces Drizzle "Failed query" messages as a safety net for privileged queries outside it. Source maps are generated, uploaded and deleted only when `SENTRY_AUTH_TOKEN` is present.
 
 ## Security defaults
 

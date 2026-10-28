@@ -60,7 +60,7 @@ Stop the stack with `npm run db:stop`.
 
 All routes also exist under `/es/...`.
 
-**Registration in production is your decision.** The local config allows public sign-up without email confirmation for convenience. For a hosted project, configure in the Supabase dashboard: whether sign-up is allowed, email confirmation, an SMTP provider, CAPTCHA, rate limits and allowed redirect URLs. Hiding the sign-up link does not stop API sign-ups. See [docs/architecture.md](docs/architecture.md#registration-policy-decide-per-product).
+**Registration in production is your decision.** The local config allows public sign-up without email confirmation for convenience. For a hosted project, configure in the Supabase dashboard: whether sign-up is allowed, email confirmation, an SMTP provider, CAPTCHA, rate limits and allowed redirect URLs. Set the Site URL to `NEXT_PUBLIC_APP_URL` and allow `<NEXT_PUBLIC_APP_URL>/**`: otherwise Supabase replaces the confirm page URL in the email templates with the Site URL, and email links open the home page without signing anyone in. Hiding the sign-up link does not stop API sign-ups. See [docs/architecture.md](docs/architecture.md#registration-policy-decide-per-product).
 
 ## Scripts
 

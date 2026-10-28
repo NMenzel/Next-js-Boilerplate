@@ -65,7 +65,7 @@ Conventional Commits: `type: summary` without scope. The summary is a short, spe
 - Default export name ends with `Page`. Props alias (if reused) ends with `PageProps`.
 - Locale pages: `props: { params: Promise<{ locale: string }> }` → `await props.params` → `setRequestLocale(locale)`.
 - Escape glob chars in shell commands for Next.js paths (for example `src/app/\[locale\]`).
-- Protected pages live under `src/app/[locale]/app/`; define their metadata once in the layout.
+- Protected pages live under `src/app/[locale]/app/`; shared metadata (description, `noindex`) is defined once in the layout. Every page except `/app` sets its own `title` (WCAG 2.4.2).
 
 ## i18n (next-intl)
 - Never hard-code user-visible strings. Add keys to both `src/locales/en.json` and `es.json`.

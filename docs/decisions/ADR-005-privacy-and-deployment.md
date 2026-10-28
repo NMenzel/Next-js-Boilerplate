@@ -20,7 +20,7 @@ The upstream boilerplate advertised PostHog and other services without a real pr
 
 1. Runtime and docs stay provider-neutral: the app is a standard Next.js Node.js server (`npm run build && npm run start`). Vercel works, as do other Node hosts and containers. Do not use static export; keep Node runtime compatibility for future server libraries.
 2. Production launch tasks owned by the child project:
-   - a hosted Supabase project (region, plan, auth settings, signing keys, redirect URLs, SMTP, CAPTCHA, rate limits, `auto_expose_new_tables` disabled, migrations applied via CI or `supabase db push`);
+   - a hosted Supabase project (region, plan, auth settings, signing keys, Site URL and redirect URLs (`<NEXT_PUBLIC_APP_URL>/**`, required by the email link templates), SMTP, CAPTCHA, rate limits, `auto_expose_new_tables` disabled, migrations applied via CI or `supabase db push`);
    - environment variables per environment (`.env.example` lists them) and secret management;
    - production email delivery, plus the confirmation and recovery templates from `supabase/templates/` (the app's email links depend on them);
    - backups and restore drills for the database **and Storage objects**;

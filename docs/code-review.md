@@ -46,3 +46,47 @@
 Verification after the fixes (working copy at `0f33cc8`): `npm run verify` passes (static checks, 16 unit/component tests, 6 story tests, 15 pgTAP assertions, 3 Drizzle RLS tests, 33 E2E tests); `CI=true npm run test:e2e` 66/66 (Chromium + Firefox); `npm run build-storybook` passes.
 
 Hosted projects must copy the two email templates to *Authentication → Emails*; with the default templates, email links are rejected as invalid. This is in the README, `docs/architecture.md` and ADR-005.
+
+## Second review (2026-10-27, branch at `c960924`)
+
+Scope: the full branch (`b83157a..c960924`) including the fixes above, plus config, CI, migrations, tests and docs. Fixes 1 and 3–15 hold. Fix 2 is incomplete (finding 16). The `no-store` assertion cited for fix 3 tests Next.js, not app code (finding 26).
+
+| # | Severity | Area | Finding | Evidence | Status |
+|---|---|---|---|---|---|
+| 16 | High | Privacy | Drizzle errors keep their parameters in `message` and `.params`, including the full claims JSON (email, metadata, session ID) bound by `withRls`. Unhandled ones are printed by Next's server error logger and can reach Sentry breadcrumbs; `beforeSend` only rewrites the exception value (`src/libs/DB.ts:60`) | Confirmed: `DrizzleQueryError` builds `Failed query: … params: …` and stores `params` | Fixed |
+| 17 | High | Security | Both Supabase server clients use `@supabase/ssr` defaults: `httpOnly: false`, no `Secure`. With no script CSP, any XSS can read the 400-day refresh token (`src/libs/Supabase.ts:16`, `src/proxy.ts:14`) | Confirmed: `DEFAULT_COOKIE_OPTIONS.httpOnly = false`; the app has no browser Supabase client | Fixed |
+| 18 | Medium | Auth | Templates build links from `{{ .RedirectTo }}`, which Supabase replaces with the Site URL when the redirect is not allow-listed. The link then opens the home page and the token is silently ignored. The docs do not say to allow-list `<APP_URL>/**` (`supabase/templates/*.html`) | Not reproduced (hosted behaviour) | Fixed |
+| 19 | Medium | RLS | The table-level `INSERT` grant lets users set `created_at`/`updated_at` on insert, for example through the Data API. `starter-handoff.md:88` claims server-managed columns cannot be changed; pgTAP only tests `UPDATE` (`supabase/migrations/20261027175951_…sql:15`) | Confirmed by reading the grant | Fixed |
+| 20 | Medium | Tests | No test covers the sign-up confirmation link (`type=email`, `confirmation.html`, the `/app` branch of `confirmEmailLink`); local confirmations are off (`tests/e2e/Auth.e2e.ts`) | Confirmed | Fixed |
+| 21 | Medium | Auth | `signIn` maps every non-429 error to "Invalid email or password.", including outages (`AuthRetryableFetchError`, 5xx) and `email_not_confirmed` (`src/actions/AuthActions.ts:61`) | Confirmed by reading the code | Fixed |
+| 22 | Low | Config | `NEXT_PUBLIC_APP_URL` with a trailing slash produces `//auth/confirm` and `//sitemap.xml` (`AuthActions.ts:23`, `robots.ts`, `sitemap.ts`) | Confirmed by reading the code | Fixed |
+| 23 | Low | Auth | A `weak_password` with reason `length` shows "Use 8 to 72 characters", which is wrong when a hosted project raises the minimum (`AuthActions.ts:41`) | Confirmed by reading the code | Fixed |
+| 24 | Low | Accessibility | `global-error.tsx` has no `<title>`, always `lang="en"`, and shows English text from `NextError`; no axe check covers it | Confirmed | Fixed |
+| 25 | Low | Accessibility | `/app/update-password` shares the layout's title with `/app` (WCAG 2.4.2) (`src/app/[locale]/app/layout.tsx:19`) | Confirmed | Fixed |
+| 26 | Low | Tests | The `no-store` assertion in the recovery E2E test checks Next.js's own header (`action-handler.js` always sets it), so it cannot catch an app regression (`Auth.e2e.ts:182`) | Confirmed in `node_modules/next/dist/server/app-render/action-handler.js` | Fixed |
+| 27 | Low | Performance | `withRls` uses two statements before the query; one `select set_config(…), set_config('role', 'authenticated', true)` would do (`DB.ts:62`) | Confirmed by reading the code | Fixed |
+| 28 | Low | Cleanup | `getI18nPath` re-implements next-intl's `getPathname` with a hard-coded `as-needed` rule (`src/utils/Helpers.ts:9`) | Confirmed | Fixed |
+| 29 | Low | Rules | `src/proxy.ts` imports `./libs/Env` and `./libs/I18nRouting` relatively; `AGENTS.md` requires `@/` outside the same directory | Confirmed | Fixed |
+| 30 | Low | Rules | The `CI` variable is validated in `Env.ts` but missing from `.env.example` | Confirmed | Fixed |
+
+### Fixes (second review)
+
+| # | Change | Test that covers it |
+|---|---|---|
+| 16 | `withRls` rethrows `DrizzleQueryError` as `Database query failed (<SQLSTATE>)` with only a `code` (no parameters in the message, no `params`, no `cause`). `beforeSend` stays as a safety net | `DB.db.test.ts` "removes query parameters and claims from query errors" (failed before the fix) |
+| 17 | `src/libs/SupabaseCookies.ts`: `httpOnly: true`, and `secure` when `NEXT_PUBLIC_APP_URL` uses HTTPS. Used by the proxy and `createClient` | E2E "hides the session cookies from scripts after sign-up and refresh" |
+| 18 | README, `docs/architecture.md` and ADR-005 require Site URL = `NEXT_PUBLIC_APP_URL` and the redirect URL `<NEXT_PUBLIC_APP_URL>/**`, and explain the silent failure | Documentation only (hosted behaviour) |
+| 19 | New migration `20261027215802_profiles_insert_timestamps.sql`: a `BEFORE INSERT` trigger sets both timestamps | pgTAP assertions 16 and 17 (plan 15 → 17) |
+| 20 | A unit test reads both templates, fills `RedirectTo` and `TokenHash`, and parses the link with `EmailLinkValidation` | `AuthValidation.test.ts` (fails when `confirmation.html` uses `type=signup`) |
+| 21 | `signIn`: `email_not_confirmed` shows "Confirm your email address first." (Supabase checks the password first; verified against local Auth). Retryable and 5xx errors show the generic error | Local Auth probe; no E2E (local confirmations are off) |
+| 22 | `Env.ts` removes trailing slashes from `NEXT_PUBLIC_APP_URL` | Static checks |
+| 23 | `weak_password` with reason `length` shows "Use a longer password." (Zod already enforces 8 to 72 bytes) | Not testable locally |
+| 24 | New localized `[locale]/error.tsx` with a `<title>`; `global-error.tsx` renders the default locale's `ErrorPage` messages and a `<title>` | Static checks (no E2E can trigger a render error) |
+| 25 | `/app/update-password` sets its own title; the `AGENTS.md` metadata rule now says so | Static checks |
+| 26 | The recovery test no longer asserts `no-store` on the action POST. A new test asserts that a static page refreshing the session is `no-store`, and that the anonymous page is not | E2E "stops shared caches from storing a static page that refreshes the session" |
+| 27 | One `set_config` statement sets the claims, `sub` and `role` | `test:db` 4/4 |
+| 28 | `getI18nPath` and its tests removed; `robots.ts` and `sitemap.ts` use `getPathname` | Static checks |
+| 29 | `proxy.ts` imports `@/libs/…` | Lint |
+| 30 | `CI` documented in `.env.example` | None needed |
+
+Verification (2026-10-28): typecheck, lint, format, Knip, i18n, `drizzle-kit check`, `npm test` (16), `npm run test:storybook` (6), `npm run build` and `npm run build-storybook` pass locally; `test:db` passed 4/4 before Docker Desktop stopped responding. The new migration, `test:rls`, `test:db` and the E2E suite were not re-run locally; they run in GitHub Actions on the pull request, and the result is recorded below once known.
