@@ -1,9 +1,23 @@
+import type { Metadata } from 'next';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { updatePassword } from '@/actions/AuthActions';
 import { ActionForm } from '@/components/ActionForm';
 import { requireUserClaims } from '@/libs/Supabase';
 
-export default async function UpdatePasswordPage(props: { params: Promise<{ locale: string }> }) {
+type UpdatePasswordPageProps = {
+  params: Promise<{ locale: string }>;
+};
+
+export async function generateMetadata(props: UpdatePasswordPageProps): Promise<Metadata> {
+  const { locale } = await props.params;
+  const t = await getTranslations({ locale, namespace: 'UpdatePasswordPage' });
+
+  return {
+    title: t('meta_title'),
+  };
+}
+
+export default async function UpdatePasswordPage(props: UpdatePasswordPageProps) {
   const { locale } = await props.params;
   setRequestLocale(locale);
   await requireUserClaims(locale);

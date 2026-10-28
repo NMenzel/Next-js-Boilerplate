@@ -1,7 +1,7 @@
 'use server';
 
 import type { AuthError } from '@supabase/supabase-js';
-import { isAuthWeakPasswordError } from '@supabase/supabase-js';
+import { isAuthRetryableFetchError, isAuthWeakPasswordError } from '@supabase/supabase-js';
 import { getLocale, getTranslations } from 'next-intl/server';
 import type { FormState } from '@/components/ActionForm';
 import { Env } from '@/libs/Env';
@@ -22,7 +22,8 @@ import {
 const getConfirmUrl = (locale: string) =>
   `${Env.NEXT_PUBLIC_APP_URL}${getPathname({ href: '/auth/confirm', locale })}`;
 
-// `length` is covered by the field error; other reasons come from hosted password policies.
+// Every reason comes from the hosted password policy: the Zod schema already enforces 8 to 72 bytes,
+// so `length` means the project requires a longer password.
 const getWeakPasswordState = async (
   error: AuthError,
   values?: Record<string, string>,
@@ -38,7 +39,27 @@ const getWeakPasswordState = async (
     return { status: 'error', message: t('error_password_characters'), values };
   }
 
-  return { invalidFields: ['password'], values };
+  return { status: 'error', message: t('error_password_length'), values };
+};
+
+// Supabase checks the password before the confirmation status, so `email_not_confirmed` does not
+// reveal whether an account exists. Network and server errors are not the user's fault.
+const getSignInErrorMessage = async (error: AuthError) => {
+  const t = await getTranslations('Form');
+
+  if (error.status === 429) {
+    return t('error_rate_limited');
+  }
+
+  if (error.code === 'email_not_confirmed') {
+    return t('error_email_not_confirmed');
+  }
+
+  if (isAuthRetryableFetchError(error) || (error.status ?? 0) >= 500) {
+    return t('error_generic');
+  }
+
+  return t('error_invalid_credentials');
 };
 
 export const signIn = async (_state: FormState, formData: FormData): Promise<FormState> => {
@@ -54,13 +75,8 @@ export const signIn = async (_state: FormState, formData: FormData): Promise<For
 
   if (error) {
     logger.warn('Sign-in failed', { code: error.code, status: error.status });
-    const t = await getTranslations('Form');
 
-    return {
-      status: 'error',
-      message: error.status === 429 ? t('error_rate_limited') : t('error_invalid_credentials'),
-      values,
-    };
+    return { status: 'error', message: await getSignInErrorMessage(error), values };
   }
 
   return redirect({ href: '/app', locale: await getLocale() });

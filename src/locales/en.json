@@ -56,7 +56,8 @@
   },
   "UpdatePasswordPage": {
     "heading": "Change password",
-    "submit": "Update password"
+    "submit": "Update password",
+    "meta_title": "Change password"
   },
   "AuthFields": {
     "email_label": "Email",
@@ -82,7 +83,9 @@
     "success_reset_sent": "If an account exists for this email, a reset link is on its way.",
     "error_password_characters": "Add the required letters, digits or symbols.",
     "error_password_pwned": "This password appeared in a data breach. Choose another one.",
-    "error_sign_out_failed": "Sign-out failed. You are still signed in."
+    "error_sign_out_failed": "Sign-out failed. You are still signed in.",
+    "error_email_not_confirmed": "Confirm your email address first.",
+    "error_password_length": "Use a longer password."
   },
   "LocaleSwitcher": {
     "change_language": "Change language"
@@ -98,5 +101,10 @@
     "heading": "Continue from your email",
     "intro": "Select the button to confirm this link.",
     "submit": "Continue"
+  },
+  "ErrorPage": {
+    "heading": "Something went wrong",
+    "description": "The page could not be loaded.",
+    "home_link": "Go to the homepage"
   }
 }
