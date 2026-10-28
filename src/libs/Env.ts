@@ -12,7 +12,8 @@ export const Env = createEnv({
   },
   client: {
     // Base URL of auth email links; a missing value would send production links to localhost.
-    NEXT_PUBLIC_APP_URL: z.url(),
+    // Trailing slashes are removed because paths are appended (`${NEXT_PUBLIC_APP_URL}/sitemap.xml`).
+    NEXT_PUBLIC_APP_URL: z.url().transform((url) => url.replace(/\/+$/u, '')),
     NEXT_PUBLIC_SUPABASE_URL: z.url(),
     NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: z.string().min(1),
     NEXT_PUBLIC_LOGGING_LEVEL: z
