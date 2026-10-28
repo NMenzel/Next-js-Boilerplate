@@ -3,6 +3,7 @@ import { cookies } from 'next/headers';
 import { cache } from 'react';
 import { Env } from './Env';
 import { redirect } from './I18nNavigation';
+import { supabaseCookieOptions } from './SupabaseCookies';
 
 /**
  * Creates a Supabase client bound to the auth cookies of the current request.
@@ -17,6 +18,7 @@ export const createClient = async () => {
     Env.NEXT_PUBLIC_SUPABASE_URL,
     Env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY,
     {
+      cookieOptions: supabaseCookieOptions,
       cookies: {
         getAll: () => cookieStore.getAll(),
         // The cache headers (second argument) cannot be set here. Cookies are only written by Server

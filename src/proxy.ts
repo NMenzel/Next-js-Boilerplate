@@ -2,8 +2,9 @@ import type { SetAllCookies } from '@supabase/ssr';
 import { createServerClient } from '@supabase/ssr';
 import createMiddleware from 'next-intl/middleware';
 import type { NextRequest } from 'next/server';
-import { Env } from './libs/Env';
-import { routing } from './libs/I18nRouting';
+import { Env } from '@/libs/Env';
+import { routing } from '@/libs/I18nRouting';
+import { supabaseCookieOptions } from '@/libs/SupabaseCookies';
 
 const handleI18nRouting = createMiddleware(routing);
 
@@ -15,6 +16,7 @@ export default async function proxy(request: NextRequest) {
     Env.NEXT_PUBLIC_SUPABASE_URL,
     Env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY,
     {
+      cookieOptions: supabaseCookieOptions,
       cookies: {
         getAll: () => request.cookies.getAll(),
         setAll: (cookiesToSet, headers) => {

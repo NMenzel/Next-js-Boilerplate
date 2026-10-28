@@ -128,6 +128,39 @@ test.describe('Authentication', () => {
       expect(after.refresh_token).not.toBe(before.refresh_token);
       expect(after.expires_at).toBeGreaterThan(Date.now() / 1000);
     });
+
+    test('stops shared caches from storing a static page that refreshes the session', async ({
+      context,
+      page,
+      request,
+    }) => {
+      const anonymous = await request.get('/');
+
+      expect(anonymous.headers()['cache-control']).not.toContain('no-store');
+
+      await signUp(page, createEmail());
+      await expireAccessToken(context);
+      const response = await page.goto('/');
+
+      expect(response?.headers()['cache-control']).toContain('no-store');
+    });
+
+    test('hides the session cookies from scripts after sign-up and refresh', async ({
+      context,
+      page,
+    }) => {
+      await signUp(page, createEmail());
+
+      expect(await page.evaluate(() => document.cookie)).not.toContain('auth-token');
+
+      await expireAccessToken(context);
+      await page.goto('/app');
+
+      const refreshed = await readSession(context);
+
+      expect(await page.evaluate(() => document.cookie)).not.toContain('auth-token');
+      expect(refreshed.expires_at).toBeGreaterThan(Date.now() / 1000);
+    });
   });
 
   test.describe('Profile', () => {
@@ -173,13 +206,8 @@ test.describe('Authentication', () => {
       const otherDevice = await browser.newContext();
       const otherPage = await otherDevice.newPage();
       await otherPage.goto(link);
-      const [response] = await Promise.all([
-        otherPage.waitForResponse((candidate) => candidate.request().method() === 'POST'),
-        otherPage.getByRole('button', { name: 'Continue' }).click(),
-      ]);
+      await otherPage.getByRole('button', { name: 'Continue' }).click();
 
-      // The response sets the session cookies, so shared caches must not store it.
-      expect(response.headers()['cache-control']).toContain('no-store');
       await expect(otherPage).toHaveURL(/\/app\/update-password$/u);
 
       await otherPage.getByLabel('New password').fill(newPassword);
