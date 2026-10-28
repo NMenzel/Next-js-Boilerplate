@@ -10,7 +10,8 @@ pre-commit:
   parallel: true
   jobs:
     - name: format
-      run: npx --no -- oxfmt --check {staged_files}
+      # Staged files may all be ignored by oxfmt (e.g. supabase/migrations/**); that is not an error.
+      run: npx --no -- oxfmt --check --no-error-on-unmatched-pattern {staged_files}
       glob:
         - '**/*.{js,jsx,ts,tsx,json,jsonc,css}'
     - name: lint
